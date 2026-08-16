@@ -55,6 +55,16 @@
 
 - 2026-08-16：**书架公开浏览**（用户需求）——首页/书架无需登录即可浏览文章列表与详情，进入精读阅读（/reading、进度、生词、收藏）才需登录；后端 WebConfig 放行 /api/articles 与 /api/articles/*，前端路由 / 移除 requiresAuth，已同步 doc/00-design.md §2 与 frontend/doc/README.md
 
+## 步骤 7 — 书架+近期+个人页面
+
+- 2026-08-16：api/article.ts（书架/详情/reading/进度上报）、api/vocab.ts、api/favorite.ts 模块
+- 2026-08-16：工具：formatRelativeTime 相对时间、DIFFICULTY 难度徽章、coverGradient/coverInitial（标题 hash 暖色渐变封面）
+- 2026-08-16：ShelfView——筛选栏（关键词+难度 chips）+ 网格卡片（渐变封面+首字母水印+进度角标+难度徽章+词句数）+ 加载更多 + 空态；登录后从近期阅读匹配进度角标；响应式栅格
+- 2026-08-16：RecentReadingView——卡片列表（封面/标题/4px 细进度条/相对时间/已完成徽章）+ 空态
+- 2026-08-16：ProfileView——头像昵称编辑弹窗、统计卡（完成数/进行中/平均进度）、学习数据入口（近期/生词/收藏/改密）、管理后台入口按钮（admin 可见）、首登强制改密自动弹窗
+- 2026-08-16：VocabView（搜索/分页/出处句/删除）、FavoritesView（例句+文章链接/取消收藏）分页列表
+- 2026-08-16：**步骤 7 验收**：npm run build 通过（修复模板 as 断言/fromEntries 等 4 处类型问题）；/ /recent /vocab /favorites /profile 全部 200；书架接口经代理返回数据。浏览器视觉走查待用户验收
+
 ## 步骤 6 — 前端框架+认证
 
 - 2026-08-16：api/auth.ts、api/user.ts 模块；userStore 补 login/register/fetchMe（刷新恢复登录态）
