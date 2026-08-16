@@ -36,23 +36,38 @@ public final class SentenceSplitter {
 
     /**
      * 切分全文为句子列表（带段落号，trim 后非空）。
-     * 空行分段：正则匹配 \n + 任意空白 + \n（含 \r\n 平台差异）。
+     * 段落判定（格式化容错，不依赖用户输入规范）：
+     *  - 全文存在空行（\n 或 \r\n 分隔的空行）→ 空行分段，段内单个换行折叠为空格（原行为）
+     *  - 全文无空行 → 单个换行即段落边界（用户可能用单换行分段，如从网页/文档粘贴）
+     * 空白段落跳过且段号只在非空段落递增（保证 0,1,2… 连续）。
      */
     public static List<SentencePart> split(String text) {
         List<SentencePart> parts = new ArrayList<>();
         if (text == null || text.isBlank()) {
             return parts;
         }
-        String[] paragraphs = text.split("\\r?\\n\\s*\\r?\\n");
+        String normalized = text.replace("\r\n", "\n");
+        boolean hasBlankLine = BLANK_LINE_PATTERN.matcher(normalized).find();
+        String[] paragraphs = hasBlankLine
+                ? normalized.split("\\n\\s*\\n")
+                : normalized.split("\\n+");
         int para = 0;
         for (String paragraph : paragraphs) {
-            for (String sentence : splitParagraph(paragraph)) {
+            String trimmed = paragraph.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            for (String sentence : splitParagraph(trimmed)) {
                 parts.add(new SentencePart(sentence, para));
             }
             para++;
         }
         return parts;
     }
+
+    /** 空行判定：\n + 任意空白（含 \r 残留）+ \n */
+    private static final java.util.regex.Pattern BLANK_LINE_PATTERN =
+            java.util.regex.Pattern.compile("\\n[ \\t\\r]*\\n");
 
     /** 段内切句：空白折叠为单空格，按 . ! ? 切分（缩写/数字/引号保护） */
     private static List<String> splitParagraph(String paragraph) {
@@ -116,10 +131,16 @@ public final class SentenceSplitter {
         if (ABBREVIATIONS.contains(word) || ABBREVIATIONS_MULTI.contains(word)) {
             return false;
         }
-        // 缩写中间点：点后紧跟字母（无空格）视为缩写内部（如 U.S.、e.g.、A.B.C.）
-        // 正常句界点后是空格或句尾引号，不受影响
+        // 缩写中间点：点后紧跟字母（无空格）视为缩写内部（如 U.S.、e.g.、A.B.C.）；
+        // 但点前是完整单词（长度≥3，如 "strong.Tom" 句子粘连无空格）视为句界
         if (i + 1 < text.length() && Character.isLetter(text.charAt(i + 1))) {
-            return false;
+            int wordStart = i - 1;
+            while (wordStart >= 0 && (Character.isLetter(text.charAt(wordStart))
+                    || text.charAt(wordStart) == '\''
+                    || text.charAt(wordStart) == '-')) {
+                wordStart--;
+            }
+            return i - wordStart - 1 >= 3;
         }
         return true;
     }

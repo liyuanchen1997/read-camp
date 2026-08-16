@@ -69,12 +69,52 @@ class SentenceSplitterTest {
 
     @Test
     void newlinesNormalizedWithinParagraph() {
-        // 段内单个换行折叠为空格：句子正常切分，且不产生新段落
+        // 存在空行（空行分段风格）：段内单个换行折叠为空格，不产生新段落
         List<SentencePart> parts = SentenceSplitter.split(
-                "First sentence.\nStill first paragraph.\nSecond sentence.");
-        assertEquals(3, parts.size());
+                "First sentence.\nStill first paragraph.\nSecond sentence.\n\nNext paragraph.");
+        assertEquals(4, parts.size());
         assertEquals("Still first paragraph.", parts.get(1).text());
         assertEquals(0, parts.get(1).para());
+        assertEquals("Next paragraph.", parts.get(3).text());
+        assertEquals(1, parts.get(3).para());
+    }
+
+    @Test
+    void singleNewlineSplitsParagraph() {
+        // 全文无空行（单换行分段风格，用户粘贴常见）：单个换行即段落边界
+        List<SentencePart> parts = SentenceSplitter.split(
+                "Billy is ten. He is big.\nThis is Tom. He is small.\nThey have bunk-beds.");
+        assertEquals(5, parts.size());
+        assertEquals(0, parts.get(0).para());
+        assertEquals(0, parts.get(1).para());
+        assertEquals(1, parts.get(2).para());
+        assertEquals(1, parts.get(3).para());
+        assertEquals(2, parts.get(4).para());
+    }
+
+    @Test
+    void gluedSentencesWithoutSpaceSplit() {
+        // 句子粘连无空格：点后紧跟大写字母，点前是完整单词（≥3 字符）→ 仍视为句界
+        List<String> r = texts("He is not strong.Tom is not happy.");
+        assertEquals(List.of("He is not strong.", "Tom is not happy."), r);
+    }
+
+    @Test
+    void unknownMultiDotAbbreviationKept() {
+        // 未知缩写（A.B.C.）：内部点（A.、B.）点前仅 1 字符 → 不切；
+        // 结尾点 C. 后跟空格按常规句界切分（原行为，缩写结束处不特判）
+        List<String> r = texts("The A.B.C. company grew. It doubled.");
+        assertEquals(3, r.size());
+        assertTrue(r.get(0).contains("A.B"));
+    }
+
+    @Test
+    void trailingNewlineKeepsConsecutiveParaIds() {
+        // 换行开头/结尾的空白段跳过，段号保持 0,1,2… 连续
+        List<SentencePart> parts = SentenceSplitter.split("\nPara one.\n\n\nPara two.\n");
+        assertEquals(2, parts.size());
+        assertEquals(0, parts.get(0).para());
+        assertEquals(1, parts.get(1).para());
     }
 
     @Test
