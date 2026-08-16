@@ -20,6 +20,8 @@ public class VocabItem {
     private String meaning;
     /** 在句中的作用（来自出处句 AI 标注，可能为 null） */
     private String role;
+    /** 英语音标 IPA（来自出处句 AI 标注，可能为 null） */
+    private String phonetic;
     private LocalDateTime createdAt;
 
     public static VocabItem from(UserVocab vocab) {

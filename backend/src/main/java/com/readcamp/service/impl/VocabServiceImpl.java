@@ -82,6 +82,7 @@ public class VocabServiceImpl implements VocabService {
                         v.setPos(w.get("pos"));
                         v.setMeaning(w.get("meaning"));
                         v.setRole(w.get("role"));
+                        v.setPhonetic(w.get("phonetic"));
                         break;
                     }
                 }

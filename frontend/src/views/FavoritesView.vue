@@ -10,6 +10,20 @@
         </div>
         <p v-if="item.zh" class="fav-zh">{{ item.zh }}</p>
         <p v-if="item.explanation" class="fav-expl">{{ item.explanation }}</p>
+        <!-- 可收起的单词列表（默认收起） -->
+        <div v-if="item.words?.length" class="fav-words">
+          <button class="fav-words-toggle" @click="toggleWords(item.sentenceId)">
+            {{ expandedWords.has(item.sentenceId) ? '▾ 收起单词' : '▸ 查看单词' }}
+          </button>
+          <div v-if="expandedWords.has(item.sentenceId)" class="fav-words-list">
+            <span v-for="(w, i) in item.words" :key="i" class="fw-item">
+              <span class="fw-word">{{ w.word }}</span>
+              <span v-if="w.phonetic" class="fw-phonetic">{{ w.phonetic }}</span>
+              <span v-if="w.pos" class="fw-pos">{{ w.pos }}</span>
+              <span v-if="w.meaning" class="fw-meaning">{{ w.meaning }}</span>
+            </span>
+          </div>
+        </div>
         <div class="fav-meta">
           <router-link :to="`/reading/${item.articleId}`" class="fav-article">
             {{ item.articleTitle }} · 第 {{ item.seq + 1 }} 句
@@ -42,6 +56,16 @@ const items = ref<FavoriteItem[]>([])
 const page = ref(1)
 const total = ref(0)
 const loading = ref(false)
+
+/** 展开单词列表的句子 id 集合 */
+const expandedWords = ref<Set<number>>(new Set())
+
+function toggleWords(sentenceId: number) {
+  const next = new Set(expandedWords.value)
+  if (next.has(sentenceId)) next.delete(sentenceId)
+  else next.add(sentenceId)
+  expandedWords.value = next
+}
 
 const hasMore = computed(() => items.value.length < total.value)
 
@@ -141,6 +165,60 @@ onMounted(() => fetchPage(1))
   font-size: 0.82rem;
   line-height: 1.7;
   margin-top: var(--space-1);
+}
+
+/* 可收起单词列表 */
+.fav-words {
+  margin-top: var(--space-2);
+}
+
+.fav-words-toggle {
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.fav-words-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg-hover);
+}
+
+.fw-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 0.82rem;
+}
+
+.fw-word {
+  font-family: var(--font-serif-en);
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.fw-phonetic {
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  font-family: var(--font-serif-en);
+}
+
+.fw-pos {
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  font-style: italic;
+}
+
+.fw-meaning {
+  color: var(--ink-2);
 }
 
 .fav-meta {

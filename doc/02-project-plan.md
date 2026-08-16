@@ -1,6 +1,6 @@
 # 项目计划表（doc/02）
 
-> **当前进度：步骤 16 已完成待验收**（阅读页章节渲染/目录/翻阅/高亮），12 步全部完成 ✅
+> **当前进度：步骤 17 已完成待验收**（单词音标四处展示），12 步全部完成 ✅ —— 两个迭代（章节 + 音标）开发完毕，进入整体走查验收
 > 迭代需求（2026-08-16 确认）：①文章分章节编辑 + 阅读页章节展示/目录/翻阅；②单词英语音标（讲解弹窗/WordBubble/生词本/收藏页）。设计见 doc/00-design.md §1/§3/§4 与 doc/01-ui-design.md §3。
 > 规则：每步一个模块，完成后更新状态与日期、追加 changelog，然后**暂停等待用户指令**。
 
@@ -31,7 +31,7 @@
 | 14 | 章节后端 | DTO（ArticleRequest.chapters / ChapterDto / ReadingPayload.chapters / ArticleDetailDto / SentenceDto.chapterId）→ ArticleServiceImpl（normalizeChapters/joinChapters/splitAndStore/reSplit 级联 chapter/chapterize/updateChapterTitlesOnly/readingPayload/detail）→ controller.detail 走 service | curl 全套：建文带/不带 chapters、重切分、仅改标题不重切分、reading 载荷恒非空、删除级联、旧文章合成单章 | 🟢 已完成 | 2026-08-16 | 迭代①；9 项 curl 验收全过（含 chapterize 迁移不删标注/进度、旧文章合成单章 id=null）；10009 已由 chapterize 补章节行 |
 | 15 | 管理端章节编辑器 | api 类型 → 编辑器章节卡片（标题+正文+增删/上下移，≥1 章）+ 回显回退 + payload 带 chapters + 重切分弹窗比较（仅标题变化不弹） | 建分章节文章回显正确、弹窗触发矩阵、旧文章单章回退保存不弹窗且完成 chapterize | 🟢 已完成 | 2026-08-16 | 迭代①；前端类型+build 通过、后端链路已由步骤 14 覆盖（回显/弹窗/迁移行为 API 级验证），浏览器交互走查待用户 |
 | 16 | 阅读页章节 | store chapterGroups → SentencePane 章渲染（(chapterId,para) 分组、章标题双栏对称）→ ChapterToc（aside/dropdown）→ ReadingView 布局/跳转/高亮/prev-next → reading.css | 桌面目录跳转+高亮、移动端折叠目录、单章兼容、同步滚动无回弹回归、TTS 定位回归、双主题+<1024px 走查、npm build | 🟢 已完成 | 2026-08-16 | 迭代①；vue-tsc + build 通过（Vue3 template v-for key 语法修正）；浏览器交互走查待用户 |
-| 17 | 单词音标 | AiGenerationService prompt+校验（words 加 phonetic）→ FavoriteItem/VocabItem 带出 → 前端四处展示（SentenceBubble/WordBubble/VocabView/FavoritesView 收藏句单词列表） | 新生成文章四处显示音标；存量不显示且无布局异常；双主题+移动端走查 | ⚪ 未开始 | — | 迭代② |
+| 17 | 单词音标 | AiGenerationService prompt+校验（words 加 phonetic）→ FavoriteItem/VocabItem 带出 → 前端四处展示（SentenceBubble/WordBubble/VocabView/FavoritesView 收藏句单词列表） | 新生成文章四处显示音标；存量不显示且无布局异常；双主题+移动端走查 | 🟢 已完成 | 2026-08-16 | 迭代②；真实 API 验证：新生成 9/9 词带音标（/ˈbɪli/ 等）、收藏/生词列表带出 phonetic、存量标注 None 不显示；build 通过 |
 
 状态图例：🔵 进行中 · 🟢 已完成 · ⚪ 未开始 · 🔴 阻塞/需用户决策
 

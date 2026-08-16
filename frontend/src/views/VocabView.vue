@@ -18,6 +18,7 @@
         <div class="vocab-main">
           <div class="vocab-head">
             <h3 class="vocab-word">{{ item.word }}</h3>
+            <span v-if="item.phonetic" class="vocab-phonetic">{{ item.phonetic }}</span>
             <span v-if="item.pos" class="vocab-pos">{{ item.pos }}</span>
             <button class="speak-btn" title="发音" @click="tts.speak(item.word)">🔊</button>
           </div>
@@ -170,6 +171,12 @@ onMounted(() => fetchPage(1))
   font-size: 0.75rem;
   color: var(--ink-3);
   font-style: italic;
+}
+
+.vocab-phonetic {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  font-family: var(--font-serif-en);
 }
 
 .speak-btn {

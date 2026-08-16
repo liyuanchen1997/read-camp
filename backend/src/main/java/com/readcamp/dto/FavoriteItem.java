@@ -15,6 +15,8 @@ public class FavoriteItem {
     private String zh;
     /** 中文讲解（AI 标注，可能为 null） */
     private String explanation;
+    /** 单词标注 [{word,pos,meaning,role,phonetic}]（AI 标注，可能为 null） */
+    private java.util.List<java.util.Map<String, String>> words;
     private Integer seq;
     private Long articleId;
     private String articleTitle;

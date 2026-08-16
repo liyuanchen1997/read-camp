@@ -12,6 +12,8 @@ export interface VocabItem {
   meaning?: string | null
   /** 在句中的作用 */
   role?: string | null
+  /** 英语音标 IPA（来自出处句 AI 标注） */
+  phonetic?: string | null
   createdAt: string
 }
 

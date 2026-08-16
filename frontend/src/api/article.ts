@@ -25,7 +25,7 @@ export interface SentenceDto {
   zh: string | null
   explanation: string | null
   components: Array<{ type: string; text: string; detail?: string }> | null
-  words: Array<{ word: string; pos?: string; meaning?: string; role?: string }> | null
+  words: Array<{ word: string; pos?: string; meaning?: string; role?: string; phonetic?: string }> | null
   genStatus: number
 }
 

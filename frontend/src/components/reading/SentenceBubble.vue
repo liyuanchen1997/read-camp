@@ -40,6 +40,7 @@
             @click="onWordClick(w, $event)"
           >
             <span class="w-word">{{ w.word }}</span>
+            <span v-if="w.phonetic" class="w-phonetic">{{ w.phonetic }}</span>
             <span v-if="w.pos" class="w-pos">{{ w.pos }}</span>
             <span v-if="w.meaning" class="w-meaning">{{ w.meaning }}</span>
           </button>
@@ -98,7 +99,7 @@ const { style } = useBubblePosition(anchorRef, bubbleEl)
 
 /** 点击选中的单词浮层状态（锚定单词项，常驻） */
 const hoveredWord = ref<{
-  word: { word: string; pos?: string; meaning?: string; role?: string }
+  word: { word: string; pos?: string; meaning?: string; role?: string; phonetic?: string }
   anchor: DOMRect
 } | null>(null)
 
@@ -275,6 +276,12 @@ function speakSentence() {
   font-family: var(--font-serif-en);
   font-weight: 600;
   color: var(--accent);
+}
+
+.w-phonetic {
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  font-family: var(--font-serif-en);
 }
 
 .w-pos {

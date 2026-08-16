@@ -9,6 +9,7 @@
     >
       <div class="wb-head">
         <span class="wb-word">{{ word.word }}</span>
+        <span v-if="word.phonetic" class="wb-phonetic">{{ word.phonetic }}</span>
         <span v-if="word.pos" class="wb-pos">{{ word.pos }}</span>
       </div>
 
@@ -33,7 +34,7 @@ import { useReadingStore } from '@/stores/reading'
 import { tts } from '@/services/tts'
 
 const props = defineProps<{
-  word: { word: string; pos?: string; meaning?: string; role?: string }
+  word: { word: string; pos?: string; meaning?: string; role?: string; phonetic?: string }
   anchor: DOMRect
   sourceArticleId?: number | null
   contextSentence?: string
@@ -107,6 +108,12 @@ async function toggleVocab() {
   font-size: 0.8rem;
   color: var(--ink-3);
   font-style: italic;
+}
+
+.wb-phonetic {
+  font-size: 0.8rem;
+  color: var(--ink-3);
+  font-family: var(--font-serif-en);
 }
 
 .close-btn {

@@ -54,14 +54,15 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                   "content_zh": "中文翻译",
                   "explanation": "中文讲解：句子结构/时态/含义/关键语法点",
                   "components": [{"type": "主语", "text": "The cat", "detail": "作用说明"}],
-                  "words": [{"word": "cat", "pos": "n.", "meaning": "猫", "role": "主语核心名词"}]
+                  "words": [{"word": "cat", "pos": "n.", "meaning": "猫", "role": "主语核心名词", "phonetic": "/kæt/"}]
                 }
               ]
             }
             约束：
             1) words 覆盖句中全部实词（名词/动词/形容词/副词/代词/介词/连词），每个词带词性、中文意思、在句中的作用；
-            2) components 用中文语法术语（主语/谓语/宾语/定语/状语/表语/宾补/从句等）完整覆盖主要成分；
-            3) 所有中文内容保持简明；4) 严格 JSON，不要注释。
+            2) 每个词尽量输出英语 IPA 音标（用 / / 包裹，如 /ˈbɪli/），个别词不确定可省略该字段，缺失不视为错误；
+            3) components 用中文语法术语（主语/谓语/宾语/定语/状语/表语/宾补/从句等）完整覆盖主要成分；
+            4) 所有中文内容保持简明；5) 严格 JSON，不要注释。
             """;
 
     private final SentenceMapper sentenceMapper;

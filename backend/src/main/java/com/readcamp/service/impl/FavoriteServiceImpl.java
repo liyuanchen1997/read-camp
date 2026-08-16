@@ -70,6 +70,7 @@ public class FavoriteServiceImpl implements FavoriteService {
                 if (ann != null) {
                     item.setZh(ann.getContentZh());
                     item.setExplanation(ann.getExplanation());
+                    item.setWords(ann.getWords());
                 }
                 item.setSeq(sentence.getSeq());
                 item.setArticleId(sentence.getArticleId());

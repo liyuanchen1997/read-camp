@@ -8,6 +8,8 @@ export interface FavoriteItem {
   zh?: string | null
   /** 中文讲解（AI 标注） */
   explanation?: string | null
+  /** 单词标注（AI 标注，含 phonetic） */
+  words?: Array<{ word: string; pos?: string; meaning?: string; role?: string; phonetic?: string }> | null
   seq: number
   articleId: number
   articleTitle: string
