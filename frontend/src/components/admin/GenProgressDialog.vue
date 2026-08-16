@@ -14,7 +14,7 @@
         <el-radio value="all">全部重新生成（清空已有标注）</el-radio>
       </el-radio-group>
       <p class="tip">
-        DeepSeek 模型按需生成，预计每句约 2000+ tokens；本文共
+        {{ modelName }}按需生成，预计每句约 2000+ tokens；本文共
         <b>{{ article?.sentenceCount ?? 0 }}</b> 句，建议先生成少量验证效果。
       </p>
     </div>
@@ -82,7 +82,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { adminApi, type GenStatus } from '@/api/admin'
+import { adminApi, type AiConfig, type GenStatus } from '@/api/admin'
 import type { ArticleDto } from '@/api/article'
 
 const props = defineProps<{
@@ -100,6 +100,9 @@ const started = ref(false)
 const starting = ref(false)
 const status = ref<GenStatus | null>(null)
 const retryingId = ref<number | null>(null)
+
+/** 当前配置的 AI 模型名（提示语跟随配置，不写死厂商） */
+const modelName = ref('AI 模型')
 
 let pollTimer: number | null = null
 
@@ -184,7 +187,7 @@ function onClosed() {
   status.value = null
 }
 
-// 打开对话框时同步一次进度（已生成过的文章）
+// 打开对话框时同步一次进度（已生成过的文章），并读取当前 AI 模型名
 watch(
   () => props.modelValue,
   (open) => {
@@ -193,6 +196,9 @@ watch(
         status.value = s
         started.value = s.running
       })
+      adminApi.getAiConfig().then((c: AiConfig) => {
+        if (c.model) modelName.value = c.model
+      }).catch(() => {})
     }
   },
 )

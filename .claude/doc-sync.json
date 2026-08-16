@@ -1,0 +1,17 @@
+{
+  "docFiles": [
+    "CLAUDE.md",
+    "AGENTS.md",
+    "README.md",
+    "frontend/CLAUDE.md",
+    "frontend/AGENTS.md",
+    "backend/CLAUDE.md",
+    "backend/AGENTS.md"
+  ],
+  "docGlobs": [
+    "doc/**",
+    "frontend/doc/**",
+    "backend/doc/**"
+  ],
+  "requireDocs": false
+}

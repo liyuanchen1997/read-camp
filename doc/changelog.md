@@ -4,6 +4,7 @@
 
 ## 规则与约定
 
+- 2026-08-16：**生成弹窗提示语跟随 AI 模型配置**（用户反馈）——生成注解弹窗原提示语硬编码"DeepSeek 模型按需生成"，更换模型后文案不匹配。修复：弹窗打开时读取当前 ai_config，提示语动态显示实际模型名（`{{model}} 按需生成…`），拉取失败兜底"AI 模型"
 - 2026-08-16：**气泡视口溢出修复**（用户反馈）——根因：Teleport 内容挂载前 bubbleEl 为 null，单次测量取默认高度 200 导致翻转条件不触发，气泡按全高渲染溢出视口。修复：新增 useBubblePosition composable（onMounted 后重测 + **ResizeObserver 持续校正**翻转/贴底 + 保守高度兜底）；气泡 maxHeight 内联输出（vh→dvh 动态视口、visualViewport 口径统一）；SentenceBubble/WordBubble 统一接入
 - 2026-08-16：**单词解释改点击展示**（用户反馈迭代）——经 hover 浮层两轮修复（relatedTarget/跟随鼠标）仍不理想后，按用户要求放弃并改为**点击单词展示浮层**：常驻可操作（发音/生词本）、再点同一单词关闭、点其他单词切换、点气泡其他区域关闭；同步 doc/01-ui-design.md §3.4
 - 2026-08-16：**AI 模型可配置**（用户需求）——新增 ai_config 表（单行 id=1）：base_url/api_key/model/batch_size/temperature/timeout_seconds；管理后台"AI 配置"页编辑 + **测试连接**（先保存再用当前配置发测试请求）；支持任意 OpenAI 兼容服务（DeepSeek/通义/本地 Ollama 等），切换后下次生成即生效；DeepSeekClient 按 (baseUrl+apiKey) 动态重建连接，批量大小改从配置读取；yml 仅作初始默认值（首次访问落库）；已同步 doc/00-design.md §3 与 API 表
