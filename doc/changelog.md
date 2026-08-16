@@ -4,6 +4,7 @@
 
 ## 规则与约定
 
+- 2026-08-16：**句子讲解改中文**（用户反馈）——Prompt 中 explanation 由"英文讲解"改为"中文讲解"（系统提示明确"所有解释性内容一律使用中文"）；存量 3 篇文章（10001/10002/10006）target=all 重新生成，验证全部讲解以中文为主体（英文仅为原文词汇引用，符合精读讲解规范）；同步 schema.sql 注释与 doc/00-design.md
 - 2026-08-16：用户要求——**每次 git 提交前必须检查并更新相关文档**（对照 diff 检查 README/CLAUDE/AGENTS/doc/**，滞后先更新再提交），已同步至根及前后端 CLAUDE.md / AGENTS.md
 - 2026-08-16：配置 PreToolUse hook 强制文档同步——`.claude/settings.json` + `.claude/scripts/check-doc-sync.py`（git commit/push 前自动检查：非文档变更未更新 changelog、或代码变更无 doc/ 更新 → 拦截并提示调用 git-docs-sync）
 - 2026-08-16：**品牌名调整**（用户需求）——"ReadCamp" 改为"英语精读训练营"（AppHeader/登录注册页/首页/index.html 标题/README/设计文档/种子数据注释）；代码内部标识保留（com.readcamp 包、readcamp 库名、artifactId），如需一并重命名需另行评估
@@ -56,6 +57,16 @@
 ## 规则与约定
 
 - 2026-08-16：**书架公开浏览**（用户需求）——首页/书架无需登录即可浏览文章列表与详情，进入精读阅读（/reading、进度、生词、收藏）才需登录；后端 WebConfig 放行 /api/articles 与 /api/articles/*，前端路由 / 移除 requiresAuth，已同步 doc/00-design.md §2 与 frontend/doc/README.md
+
+## 步骤 11 — 管理后台前端
+
+- 2026-08-16：后端补充——GET /api/admin/stats 仪表盘（用户/文章/上架/句子/生成统计）、GET /api/admin/articles/{id} 管理端详情（含正文原文，编辑回显）
+- 2026-08-16：api/admin.ts（文章 CRUD/生成/进度/取消/单句重试/stats）
+- 2026-08-16：AdminArticlesView——列表（难度标签/句子数/AI 标注进度汇总列/失败红标）、状态筛选、上下架开关、删除确认、新建入口、生成按钮
+- 2026-08-16：GenProgressDialog——生成模式选择（增量/全量）、四态计数卡、进度条、**2s 轮询**（关闭窗口不中断提示）、取消任务、**失败句红色列表+单句重试**、预估 token 成本提示
+- 2026-08-16：AdminArticleEditorView——新建/编辑（标题/简介/难度/标签/正文），**正文变更弹窗确认重切分**（警告清空标注与进度），保存提示切分句数与词数
+- 2026-08-16：AdminStatsView 仪表盘六卡统计；路由注册 /admin/articles/new、/:id/edit
+- 2026-08-16：**步骤 11 验收**：build 通过（修复模板 TS 注解致 rolldown 崩溃、#footer 插槽位置）；全流程 API 验证：建文→生成 2 句 8s 完成→上架→书架可见→stats 数据正确；4 个后台路由 200。浏览器交互（列表/对话框轮询/重切分确认）待用户验收
 
 ## 步骤 10 — AI 生成后端
 

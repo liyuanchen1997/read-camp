@@ -14,7 +14,7 @@
 | `user` | 用户（role 0普通/1管理员，must_change_password 首登改密标记） |
 | `article` | 文章元信息 + 英文全文原文（content_en MEDIUMTEXT） |
 | `sentence` | 逐句英文，上传时服务端切分落库（article_id + seq 唯一，**para 段落号 0 起**——按原文空行分段，前端段落流式排版用） |
-| `sentence_annotation` | AI 产出 1:1 sentence：中文翻译/句子解释/句子成分 JSON/单词标注 JSON/gen_status 状态机 |
+| `sentence_annotation` | AI 产出 1:1 sentence：中文翻译/中文句子讲解/句子成分 JSON/单词标注 JSON/gen_status 状态机 |
 | `user_progress` | 阅读进度（read_sentences 已读索引 JSON + progress 冗余值 + is_completed + last_read_at） |
 | `user_vocab` | 生词本（user_id+word 唯一，小写规范化，存出处句） |
 | `user_favorite_sentence` | 例句收藏（user_id+sentence_id 唯一） |

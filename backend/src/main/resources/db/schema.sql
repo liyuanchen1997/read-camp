@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS `sentence_annotation` (
   `id`           BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `sentence_id`  BIGINT UNSIGNED NOT NULL COMMENT '句子 id',
   `content_zh`   TEXT            DEFAULT NULL COMMENT '逐句中文翻译（右侧栏+全文拼接）',
-  `explanation`  TEXT            DEFAULT NULL COMMENT '句子解释（英文讲解）',
+  `explanation`  TEXT            DEFAULT NULL COMMENT '句子讲解（中文）',
   `components`   JSON            DEFAULT NULL COMMENT '句子成分 [{type,text,detail}]',
   `words`        JSON            DEFAULT NULL COMMENT '单词标注 [{word,pos,meaning,role}]',
   `gen_status`   TINYINT         NOT NULL DEFAULT 0 COMMENT '0 未生成 / 1 生成中 / 2 已生成 / 3 生成失败',

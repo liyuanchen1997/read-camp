@@ -42,7 +42,8 @@ public class AiGenerationServiceImpl implements AiGenerationService {
 
     private static final String SYSTEM_PROMPT = """
             你是专业的英语精读讲解助手。你会收到一批英文句子（JSON 数组），请为每一句输出：
-            中文翻译、句子解释、句子成分、单词标注。只输出一个 JSON 对象，不要输出任何解释性文字或 Markdown 代码块。
+            中文翻译、中文句子讲解、句子成分、单词标注。所有解释性内容（句子讲解、成分作用、单词作用）一律使用中文。
+            只输出一个 JSON 对象，不要输出任何解释性文字或 Markdown 代码块。
             """;
 
     private static final String OUTPUT_CONSTRAINTS = """
@@ -52,7 +53,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                 {
                   "seq": 0,
                   "content_zh": "中文翻译",
-                  "explanation": "英文讲解：句子结构/时态/含义",
+                  "explanation": "中文讲解：句子结构/时态/含义/关键语法点",
                   "components": [{"type": "主语", "text": "The cat", "detail": "作用说明"}],
                   "words": [{"word": "cat", "pos": "n.", "meaning": "猫", "role": "主语核心名词"}]
                 }

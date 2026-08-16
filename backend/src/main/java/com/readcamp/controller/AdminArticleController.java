@@ -3,10 +3,14 @@ package com.readcamp.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.readcamp.common.Result;
 import com.readcamp.common.UserContext;
+import com.readcamp.dto.ArticleDetailDto;
 import com.readcamp.dto.ArticleDto;
 import com.readcamp.dto.ArticleRequest;
 import com.readcamp.dto.GenStatusResponse;
 import com.readcamp.dto.GenerateRequest;
+import com.readcamp.entity.Article;
+import com.readcamp.mapper.ArticleMapper;
+import com.readcamp.common.ApiException;
 import com.readcamp.service.ArticleService;
 import com.readcamp.service.ai.AiGenerationService;
 import jakarta.validation.Valid;
@@ -30,6 +34,7 @@ public class AdminArticleController {
 
     private final ArticleService articleService;
     private final AiGenerationService aiGenerationService;
+    private final ArticleMapper articleMapper;
 
     /** 创建文章（服务端切分落库） */
     @PostMapping
@@ -54,6 +59,16 @@ public class AdminArticleController {
     @PostMapping("/{id}/status")
     public Result<ArticleDto> changeStatus(@PathVariable Long id, @RequestBody Map<String, Integer> body) {
         return Result.ok(articleService.changeStatus(id, body.get("status")));
+    }
+
+    /** 管理端详情（含正文原文，编辑回显） */
+    @GetMapping("/{id}")
+    public Result<ArticleDetailDto> detail(@PathVariable Long id) {
+        Article article = articleMapper.selectById(id);
+        if (article == null) {
+            throw ApiException.notFound("文章不存在");
+        }
+        return Result.ok(ArticleDetailDto.from(article));
     }
 
     /** 管理列表（status 可选，keyword 匹配标题） */

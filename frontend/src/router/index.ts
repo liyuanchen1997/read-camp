@@ -77,6 +77,18 @@ const router = createRouter({
           meta: { title: '文章管理' },
         },
         {
+          path: 'articles/new',
+          name: 'admin-article-new',
+          component: () => import('@/views/admin/AdminArticleEditorView.vue'),
+          meta: { title: '新建文章' },
+        },
+        {
+          path: 'articles/:id/edit',
+          name: 'admin-article-edit',
+          component: () => import('@/views/admin/AdminArticleEditorView.vue'),
+          meta: { title: '编辑文章' },
+        },
+        {
           path: 'stats',
           name: 'admin-stats',
           component: () => import('@/views/admin/AdminStatsView.vue'),
