@@ -1,0 +1,68 @@
+/* 基础样式：reset + 全局排版（纸感背景） */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  line-height: 1.7;
+  transition: background var(--transition-base), color var(--transition-base);
+  min-height: 100vh;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+button {
+  font-family: inherit;
+}
+
+/* 通用容器 */
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-5);
+}
+
+/* 阅读正文排版（衬线） */
+.reading-text {
+  font-family: var(--font-serif-en), var(--font-serif-zh);
+  font-size: 1.5rem;
+  line-height: 1.9;
+}
+
+@media (max-width: 767px) {
+  .reading-text {
+    font-size: 1.25rem;
+  }
+}
+
+/* 滚动条（纸感柔和） */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-3);
+}

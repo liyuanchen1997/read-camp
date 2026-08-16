@@ -1,0 +1,35 @@
+# 项目计划表（doc/02）
+
+> **当前进度：第 1 步 ✅ 已完成，下一步：第 2 步（数据库）** —— 新会话/子代理接手前先读本表了解进度。
+> 规则：每步一个模块，完成后更新状态与日期、追加 changelog，然后**暂停等待用户指令**。
+
+## 总体信息
+
+- 项目：ReadCamp 英语精读训练网站
+- 技术栈：Vue3+TS+Vite+Pinia+Element Plus(管理端) ｜ Spring Boot 3 + MyBatis-Plus + MySQL 8 + JWT ｜ DeepSeek
+- 设计基线：doc/00-design.md（技术）、doc/01-ui-design.md（UI）
+- 环境：node 24 / Java 21 / Maven 3.9.9（/Users/liyuanchen/Desktop/code/utils/apache-maven-3.9.9/bin/mvn）/ MySQL 8（本地）
+
+## 步骤状态表
+
+| 步骤 | 模块 | 预计交付 | 验收要点 | 状态 | 完成日期 | 备注 |
+|---|---|---|---|---|---|---|
+| 1 | 项目骨架+文档 | 根文档 4 份 + doc/ 四份设计文档 + frontend/ backend/ 各自 CLAUDE.md、AGENTS.md、doc/ 说明文档；前端 Vite 骨架；后端 Spring Boot 骨架 + /api/health；Vite proxy→8080 | 两端可启动、health 通 | 🟢 已完成 | 2026-08-16 | 8080 曾与 memo-lanbitou 冲突，已停其进程；前端 build 通过；health 直连与代理均 200 |
+| 2 | 数据库 | db/schema.sql（8 表）+ seed.sql（预置 admin 首登改密标记 + 示例文章） | 脚本幂等可重复执行、JSON 列抽查 | ⚪ 未开始 | - | |
+| 3 | 认证后端 | 注册/登录/改密、BCrypt、JwtUtil、AuthInterceptor+UserContext、全局异常处理 | curl 全流程：注册→登录→带 token 访问 me→改密 | ⚪ 未开始 | - | |
+| 4 | 文章后端 | 管理端文章 CRUD+上下架；SentenceSplitter（缩写保护）；上传即切分；GET /reading 载荷 | 切分数与人工一致、缩写不误切 | ⚪ 未开始 | - | |
+| 5 | 学习数据后端 | 进度并集上报+快照；近期阅读；生词 CRUD；收藏 CRUD；/users/me 聚合 | 重复上报不重复计数、100%→is_completed=1 | ⚪ 未开始 | - | |
+| 6 | 前端框架+认证 | axios 实例、userStore、路由守卫、登录/注册页、AppHeader、双主题机制 | 注册→登录→刷新保持→登出；主题切换即时+持久 | ⚪ 未开始 | - | |
+| 7 | 书架+近期+个人 | 书架网格、近期阅读进度条、个人中心（资料/生词/收藏页）、空态 | 桌面+手机各过一遍 | ⚪ 未开始 | - | |
+| 8 | 阅读页 v1 | 双语双栏、hover 双向高亮、同步滚动、进度上报、翻译开关、纸张视觉 | 悬停联动、滚动不抖动不回弹、刷新进度保留 | ⚪ 未开始 | - | |
+| 9 | 阅读页 v2 | 句子/单词气泡、收藏/生词乐观更新、TTS（整篇+单句+单词+语速） | 逐项人工体验 | ⚪ 未开始 | - | |
+| 10 | AI 生成后端 | DeepSeekClient、AiGenerationService（分批/校验/重试/状态机/取消/互斥）、gen-status、单句重试 | 示例文章全量生成成功、失败重试、重复生成 409 | ⚪ 未开始 | - | 需 DeepSeek API Key |
+| 11 | 管理后台前端 | 文章列表/新建/编辑（重切分确认）/上下架、生成对话框（轮询+取消+预估成本）、失败标记+单句重试、stats | 建文→生成→上架→书架可见全流程 | ⚪ 未开始 | - | |
+| 12 | 移动端+打磨 | Tab/上下对照模式、工具栏紧凑化、加载/错误/空态全铺、双主题全量走查、性能检查 | 手机尺寸全流程无报错；双主题无样式错乱 | ⚪ 未开始 | - | |
+
+状态图例：🔵 进行中 · 🟢 已完成 · ⚪ 未开始 · 🔴 阻塞/需用户决策
+
+## 已知待办/决策记录
+
+- 步骤 10 需要用户提供 DeepSeek API Key（环境变量方式，不硬编码）
+- 数据库账号密码需要用户提供（application-local.yml，已被 gitignore）

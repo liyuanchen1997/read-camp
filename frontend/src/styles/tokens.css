@@ -1,0 +1,69 @@
+/* ============================================================
+   Design tokens — 亮色/暗黑双主题（唯一颜色/间距/圆角/阴影来源）
+   规范见 doc/01-ui-design.md §2，禁止在组件中写死颜色值
+   ============================================================ */
+
+:root {
+  /* 亮色主题（暖白纸感） */
+  --bg: #fbf7ef;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(184, 134, 11, 0.08);
+  --bg-muted: #f3ede1;
+
+  --ink: #3b3a36;
+  --ink-2: #6e6a60;
+  --ink-3: #a09a8c;
+
+  --accent: #b8860b;
+  --accent-hover: #a07609;
+  --green: #3f5a45;
+  --danger: #b3402e;
+
+  --line: rgba(59, 58, 54, 0.12);
+  --shadow: 0 6px 24px rgba(59, 58, 54, 0.1);
+  --shadow-sm: 0 2px 8px rgba(59, 58, 54, 0.08);
+
+  /* 字体 */
+  --font-serif-en: Georgia, 'Noto Serif', 'Times New Roman', serif;
+  --font-serif-zh: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+  --font-sans: system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  /* 间距阶梯 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* 圆角 */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  /* 动效 */
+  --transition-fast: 150ms ease-out;
+  --transition-base: 250ms ease-out;
+}
+
+:root[data-theme='dark'] {
+  /* 暗黑主题（深墨绿纸感氛围） */
+  --bg: #1e2620;
+  --bg-card: #262f28;
+  --bg-hover: rgba(212, 160, 23, 0.1);
+  --bg-muted: #2b352d;
+
+  --ink: #e8e2d4;
+  --ink-2: #b5ae9c;
+  --ink-3: #7e7869;
+
+  --accent: #d4a017;
+  --accent-hover: #e0b030;
+  --green: #7ba385;
+  --danger: #e07a5f;
+
+  --line: rgba(232, 226, 212, 0.14);
+  --shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
