@@ -10,8 +10,10 @@ import java.util.Map;
 public class SentenceDto {
 
     private Long id;
+    /** 章节 id（NULL=无章节旧数据，前端归入单章） */
+    private Long chapterId;
     private Integer seq;
-    /** 段落号（前端段落流式排版） */
+    /** 章内段落号（前端段落流式排版） */
     private Integer para;
     private String en;
     /** 中文翻译（未生成时为 null） */

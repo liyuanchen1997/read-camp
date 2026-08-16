@@ -1,6 +1,7 @@
 package com.readcamp.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.readcamp.dto.ArticleDetailDto;
 import com.readcamp.dto.ArticleDto;
 import com.readcamp.dto.ArticleRequest;
 import com.readcamp.dto.ReadingPayload;
@@ -12,8 +13,11 @@ public interface ArticleService {
     /** 创建文章：切分落库，返回文章信息 */
     ArticleDto create(ArticleRequest request, Long createdBy);
 
-    /** 编辑文章：正文变更则重切分（删旧句子/标注/进度） */
+    /** 编辑文章：正文变更则重切分（删旧句子/标注/进度），仅章标题变化不重切分 */
     ArticleDto update(Long id, ArticleRequest request);
+
+    /** 管理端详情：含正文原文与章节（编辑回显） */
+    ArticleDetailDto detail(Long id);
 
     /** 删除文章（级联句子/标注/进度/收藏） */
     void delete(Long id);
