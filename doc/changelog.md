@@ -26,3 +26,12 @@
 - 2026-08-16：创建 db/seed.sql（预置管理员 admin / 默认密码 admin123 / 首登强制改密；示例文章 The Lion and the Mouse 13 句 126 词，固定 id=10001 幂等；ON DUPLICATE KEY UPDATE 自赋值实现"存在即跳过"）
 - 2026-08-16：修正文档笔误"8 张表"→"7 张表"（doc/00-design.md、doc/02-project-plan.md、backend/doc/README.md）
 - 2026-08-16：**步骤 2 验收通过**：schema+seed 各执行 2 次均 exit=0，行数不变（user=1/article=1/sentence=13）；SHOW CREATE TABLE 抽查确认 JSON 列（components/words/tags/read_sentences）、唯一键（uk_sentence/uk_user_article 等）、索引（idx_gen_status/idx_recent）齐全
+
+## 步骤 3 — 认证后端
+
+- 2026-08-16：注册/登录/改密接口（BCrypt 密码编码，spring-security-crypto 单依赖）；JwtUtil（jjwt 0.12，HS384，7 天过期，secret 走配置）；AuthInterceptor（JWT→ThreadLocal UserContext，校验用户状态）+ AdminInterceptor（role==1）+ WebConfig 注册（放行 /api/health、/api/auth/register、/api/auth/login）
+- 2026-08-16：GET/PUT /api/users/me（个人资料，聚合统计留到步骤 5）
+- 2026-08-16：DTO 拆分为独立文件（AuthDtos/UserDtos 多 public 类违反 Java 规范，经用户同意删除）
+- 2026-08-16：修复 JDBC URL `characterEncoding=utf8mb4` 编码错误（Connector/J 不支持，改 utf8；同步修正 application.yml、application-local.yml、README）
+- 2026-08-16：GlobalExceptionHandler 增加 NoResourceFoundException → 404（此前不存在接口返回 500）
+- 2026-08-16：**步骤 3 验收通过**（13 项 curl 验证）：注册/重复注册 400/登录/token 访问 me/无 token 401/旧密码错误 400/改密成功/新密码登录/admin 登录带 mustChangePassword=true/改密后标记清除/普通用户访问 admin 403/admin 访问不存在接口 404

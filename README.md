@@ -33,7 +33,7 @@ mysql -uroot -p readcamp < backend/src/main/resources/db/seed.sql
 ```yaml
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/readcamp?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/readcamp?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: root
     password: <你的密码>
 readcamp:

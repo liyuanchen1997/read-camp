@@ -7,6 +7,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * 全局异常处理：业务异常 → 对应状态码；校验异常 → 首条字段错误；兜底 → 500
@@ -26,6 +27,12 @@ public class GlobalExceptionHandler {
         FieldError fieldError = e.getBindingResult().getFieldError();
         String message = fieldError == null ? "参数校验失败" : fieldError.getDefaultMessage();
         return ResponseEntity.badRequest().body(Result.fail(40001, message));
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Result<Void>> handleNotFound(NoResourceFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Result.fail(40400, "接口不存在"));
     }
 
     @ExceptionHandler(Exception.class)
