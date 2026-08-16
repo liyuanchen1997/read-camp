@@ -19,3 +19,10 @@
 - 2026-08-16：创建 backend/CLAUDE.md、backend/AGENTS.md、backend/doc/README.md（后端项目文档）
 - 2026-08-16：创建 readcamp 数据库；写 application-local.yml（gitignore 排除）
 - 2026-08-16：**步骤 1 验收通过**：前端 `npm run build` 通过、dev server 5173 正常；后端编译通过、`GET /api/health` 返回 `{"code":0,"message":"ok","data":"ok"}`（直连 8080 与 Vite 代理均 200）。期间处理：8080 端口被 memo-lanbitou 项目占用，经用户确认后停止其进程（PID 15200）
+
+## 步骤 2 — 数据库设计
+
+- 2026-08-16：创建 db/schema.sql（7 张表：user/article/sentence/sentence_annotation/user_progress/user_vocab/user_favorite_sentence，CREATE TABLE IF NOT EXISTS 幂等）
+- 2026-08-16：创建 db/seed.sql（预置管理员 admin / 默认密码 admin123 / 首登强制改密；示例文章 The Lion and the Mouse 13 句 126 词，固定 id=10001 幂等；ON DUPLICATE KEY UPDATE 自赋值实现"存在即跳过"）
+- 2026-08-16：修正文档笔误"8 张表"→"7 张表"（doc/00-design.md、doc/02-project-plan.md、backend/doc/README.md）
+- 2026-08-16：**步骤 2 验收通过**：schema+seed 各执行 2 次均 exit=0，行数不变（user=1/article=1/sentence=13）；SHOW CREATE TABLE 抽查确认 JSON 列（components/words/tags/read_sentences）、唯一键（uk_sentence/uk_user_article 等）、索引（idx_gen_status/idx_recent）齐全

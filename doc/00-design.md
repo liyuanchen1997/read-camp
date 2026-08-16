@@ -5,7 +5,7 @@
 
 ---
 
-## 1. 数据库设计（8 张表）
+## 1. 数据库设计（7 张表）
 
 引擎 InnoDB，字符集 utf8mb4，时间字段 DATETIME，`updated_at` 用 `ON UPDATE CURRENT_TIMESTAMP`。无物理外键，应用层保证一致性。
 

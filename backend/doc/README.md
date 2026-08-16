@@ -36,7 +36,7 @@ HTTP 请求 → 拦截器链（AuthInterceptor JWT → AdminInterceptor 角色�
 
 ## 4. 关键设计回顾（详见 doc/00-design.md）
 
-- 8 张表：user / article / sentence / sentence_annotation / user_progress / user_vocab / user_favorite_sentence
+- 7 张表：user / article / sentence / sentence_annotation / user_progress / user_vocab / user_favorite_sentence
 - 句子切分在服务端上传时完成并落库；阅读页零切分
 - 整篇翻译 = 逐句 content_zh 按 seq 拼接，不单独生成
 - gen_status 状态机：0未生成 → 1生成中 → 2已生成 / 3生成失败（可单句重试）
