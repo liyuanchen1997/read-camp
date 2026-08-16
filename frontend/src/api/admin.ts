@@ -44,6 +44,15 @@ export interface ArticleDetail {
   status: number
 }
 
+export interface AiConfig {
+  baseUrl: string
+  apiKey: string
+  model: string
+  batchSize: number
+  temperature: number
+  timeoutSeconds: number
+}
+
 export const adminApi = {
   // 文章管理
   list(params: { status?: number; keyword?: string; page?: number; size?: number }) {
@@ -91,6 +100,21 @@ export const adminApi = {
   // 仪表盘
   stats() {
     return http<AdminStats>({ url: '/admin/stats', method: 'get' })
+  },
+
+  // AI 模型配置
+  getAiConfig() {
+    return http<AiConfig>({ url: '/admin/ai-config', method: 'get' })
+  },
+  updateAiConfig(config: AiConfig) {
+    return http<AiConfig>({ url: '/admin/ai-config', method: 'put', data: config })
+  },
+  testAiConfig(config: AiConfig) {
+    return http<{ ok: boolean; reply: string }>({
+      url: '/admin/ai-config/test',
+      method: 'post',
+      data: config,
+    })
   },
 }
 

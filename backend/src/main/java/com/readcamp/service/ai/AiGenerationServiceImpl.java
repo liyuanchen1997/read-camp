@@ -10,11 +10,11 @@ import com.readcamp.entity.SentenceAnnotation;
 import com.readcamp.mapper.ArticleMapper;
 import com.readcamp.mapper.SentenceAnnotationMapper;
 import com.readcamp.mapper.SentenceMapper;
+import com.readcamp.service.AiConfigService;
 import com.readcamp.service.ai.DeepSeekClient.AiCallException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * AI 生成服务（doc/00-design.md §3，最高复杂度模块）
@@ -71,15 +70,13 @@ public class AiGenerationServiceImpl implements AiGenerationService {
     private final DeepSeekClient deepSeekClient;
     private final GenTaskRegistry registry;
     private final ObjectMapper objectMapper;
+    private final AiConfigService configService;
 
     @Qualifier("aiGenExecutor")
     private final Executor executor;
 
-    @Value("${readcamp.ai.batch-size:5}")
-    private int defaultBatchSize;
-
-    @Value("${readcamp.ai.max-chars-per-batch:3000}")
-    private int maxCharsPerBatch;
+    /** 批内字符上限（固定 3000，超长句自动降批） */
+    private static final int MAX_CHARS_PER_BATCH = 3000;
 
     // ---------- 任务级 ----------
 
@@ -100,7 +97,8 @@ public class AiGenerationServiceImpl implements AiGenerationService {
         if (task == null) {
             throw ApiException.conflict("该文章已有生成任务进行中");
         }
-        int batch = batchSize != null ? batchSize : defaultBatchSize;
+        // 批量大小优先取请求参数，其次取 ai_config 配置
+        int batch = batchSize != null ? batchSize : configService.get().getBatchSize();
         executor.execute(() -> runTask(task, sentences, batch));
         return sentences.size();
     }
@@ -283,7 +281,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
         int chars = 0;
         for (Sentence s : sentences) {
             int len = s.getContentEn().length();
-            if (!current.isEmpty() && (current.size() >= batchSize || chars + len > maxCharsPerBatch)) {
+            if (!current.isEmpty() && (current.size() >= batchSize || chars + len > MAX_CHARS_PER_BATCH)) {
                 batches.add(current);
                 current = new ArrayList<>();
                 chars = 0;

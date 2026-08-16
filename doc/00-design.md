@@ -18,6 +18,7 @@
 | `user_progress` | 阅读进度（read_sentences 已读索引 JSON + progress 冗余值 + is_completed + last_read_at） |
 | `user_vocab` | 生词本（user_id+word 唯一，小写规范化，存出处句） |
 | `user_favorite_sentence` | 例句收藏（user_id+sentence_id 唯一） |
+| `ai_config` | **AI 模型配置（单行 id=1）**：base_url/api_key/model/batch_size/temperature/timeout_seconds，管理后台可编辑（支持切换其他 OpenAI 兼容模型或本地模型如 Ollama）；application.yml 仅作初始默认值，首次访问落库 |
 
 ### 关键设计决策
 
@@ -53,6 +54,8 @@
 | 管理 | POST /admin/articles/{id}/sentences/{sentenceId}/generate | 单句生成/失败重试 | 管理员 |
 | 管理 | POST /admin/articles/{id}/generate/cancel | 取消任务（批间生效） | 管理员 |
 | 管理 | GET /admin/stats | 用户数/文章数/上架数等 | 管理员 |
+| 管理 | GET/PUT /admin/ai-config | AI 模型配置读取/更新（baseUrl/apiKey/model 等） | 管理员 |
+| 管理 | POST /admin/ai-config/test | 用当前配置发测试请求验证连通 | 管理员 |
 
 **鉴权**：HandlerInterceptor —— AuthInterceptor 解析 JWT 写入 ThreadLocal UserContext；AdminInterceptor 校验 role==1。密码编码 spring-security-crypto 的 BCryptPasswordEncoder（单依赖）。
 
@@ -62,11 +65,13 @@
 
 ```
 管理员点"生成" → POST /generate → 校验无进行中任务（否则 409）
-→ 按 seq 分批（默认 batchSize=5，可配；批内字符上限 3000）
-→ 每批调 DeepSeek /chat/completions（response_format=json_object, temperature=0.3, 超时 120s）
+→ 按 seq 分批（batchSize 来自 ai_config，默认 3；批内字符上限 3000）
+→ 每批调 OpenAI 兼容 /chat/completions（response_format=json_object, temperature 可配, 超时可配）
 → 解析+校验 → 逐句 UPSERT annotation（gen_status 实时落库）
 → 批级失败重试 2 次（1s/3s 退避）→ 仍败逐句标 3 + gen_error，可单句重试
 ```
+
+**模型可配置**：base_url / api_key / model / batch_size / temperature / timeout 存 `ai_config` 表（管理后台"AI 配置"页编辑），支持切换任意 OpenAI 兼容服务（DeepSeek、通义、本地 Ollama/LM Studio 等）；每次调用实时读取配置，切换后下次生成即生效；yml 配置仅作为初始默认值。
 
 ### 句子级状态机（DB 持久化，唯一事实源）
 

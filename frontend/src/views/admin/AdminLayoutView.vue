@@ -6,6 +6,9 @@
         <router-link to="/admin/articles" class="admin-nav-link" active-class="active">
           文章管理
         </router-link>
+        <router-link to="/admin/ai-config" class="admin-nav-link" active-class="active">
+          AI 配置
+        </router-link>
         <router-link to="/admin/stats" class="admin-nav-link" active-class="active">
           仪表盘
         </router-link>

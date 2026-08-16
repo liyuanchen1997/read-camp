@@ -94,6 +94,12 @@ const router = createRouter({
           component: () => import('@/views/admin/AdminStatsView.vue'),
           meta: { title: '仪表盘' },
         },
+        {
+          path: 'ai-config',
+          name: 'admin-ai-config',
+          component: () => import('@/views/admin/AdminAiConfigView.vue'),
+          meta: { title: 'AI 配置' },
+        },
       ],
     },
     {

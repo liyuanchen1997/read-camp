@@ -105,3 +105,16 @@ CREATE TABLE IF NOT EXISTS `user_favorite_sentence` (
   UNIQUE KEY `uk_user_sentence` (`user_id`, `sentence_id`),
   KEY `idx_user_created` (`user_id`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='例句收藏';
+
+-- AI 模型配置（单行 id=1；管理后台可编辑，支持切换 OpenAI 兼容模型/本地模型）
+CREATE TABLE IF NOT EXISTS `ai_config` (
+  `id`               BIGINT UNSIGNED PRIMARY KEY COMMENT '固定 1（单行配置）',
+  `base_url`         VARCHAR(255) NOT NULL COMMENT 'OpenAI 兼容接口地址',
+  `api_key`          VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'API Key（本地模型可为空）',
+  `model`            VARCHAR(100) NOT NULL COMMENT '模型名',
+  `batch_size`       INT          NOT NULL DEFAULT 3 COMMENT '每批句子数',
+  `temperature`      DECIMAL(2,1) NOT NULL DEFAULT 0.3 COMMENT '采样温度',
+  `timeout_seconds`  INT          NOT NULL DEFAULT 120 COMMENT '请求超时（秒）',
+  `updated_by`       BIGINT UNSIGNED DEFAULT NULL COMMENT '最后修改人',
+  `updated_at`       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI 模型配置';

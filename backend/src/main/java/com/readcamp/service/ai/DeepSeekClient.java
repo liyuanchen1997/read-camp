@@ -2,52 +2,62 @@ package com.readcamp.service.ai;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.readcamp.entity.AiConfig;
+import com.readcamp.service.AiConfigService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 /**
- * DeepSeek OpenAI 兼容客户端（/chat/completions）
- * 密钥来自配置（${DEEPSEEK_API_KEY}），禁止硬编码
+ * OpenAI 兼容客户端（/chat/completions）
+ * 运行时从 ai_config 表读取 base_url / api_key / model / temperature / timeout，
+ * 支持切换任意 OpenAI 兼容服务（DeepSeek、通义、本地 Ollama 等），
+ * 配置变更后按 (baseUrl+apiKey) 重建连接，下次生成即生效。
  */
 @Slf4j
 @Component
 public class DeepSeekClient {
 
-    private final RestClient client;
     private final ObjectMapper objectMapper;
-    private final String model;
-    private final int timeoutSeconds;
+    private final AiConfigService configService;
 
-    public DeepSeekClient(
-            @Value("${readcamp.ai.base-url:https://api.deepseek.com}") String baseUrl,
-            @Value("${readcamp.ai.api-key:}") String apiKey,
-            @Value("${readcamp.ai.model:deepseek-v4-flash}") String model,
-            @Value("${readcamp.ai.timeout-seconds:120}") int timeoutSeconds,
-            ObjectMapper objectMapper) {
-        this.model = model;
-        this.timeoutSeconds = timeoutSeconds;
+    /** 按 (baseUrl + apiKey) 缓存的客户端 */
+    private volatile RestClient client;
+    private volatile String clientKey;
+
+    public DeepSeekClient(AiConfigService configService, ObjectMapper objectMapper) {
+        this.configService = configService;
         this.objectMapper = objectMapper;
-        if (apiKey == null || apiKey.isBlank()) {
-            throw new IllegalStateException("readcamp.ai.api-key 未配置（环境变量 DEEPSEEK_API_KEY）");
+    }
+
+    private RestClient client() {
+        AiConfig config = configService.get();
+        String key = config.getBaseUrl() + "|" + config.getApiKey();
+        RestClient current = client;
+        if (current == null || !key.equals(clientKey)) {
+            synchronized (this) {
+                if (client == null || !key.equals(clientKey)) {
+                    SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+                    factory.setConnectTimeout(config.getTimeoutSeconds() * 1000);
+                    factory.setReadTimeout(config.getTimeoutSeconds() * 1000);
+                    client = RestClient.builder()
+                            .requestFactory(factory)
+                            .baseUrl(config.getBaseUrl())
+                            .defaultHeader("Authorization", "Bearer " + config.getApiKey())
+                            .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                            .build();
+                    clientKey = key;
+                    log.info("[ai-config] 已切换模型服务: {} / {}", config.getBaseUrl(), config.getModel());
+                }
+                current = client;
+            }
         }
-        // 连接/读取超时（reasoning 模型响应可能较慢）
-        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(timeoutSeconds * 1000);
-        factory.setReadTimeout(timeoutSeconds * 1000);
-        this.client = RestClient.builder()
-                .requestFactory(factory)
-                .baseUrl(baseUrl)
-                .defaultHeader("Authorization", "Bearer " + apiKey)
-                .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                .build();
+        return current;
     }
 
     /**
@@ -56,17 +66,18 @@ public class DeepSeekClient {
      * @return 模型输出的原始 JSON 文本（可能带 ```json 围栏，由调用方解析防护）
      */
     public String chatJson(String systemPrompt, String userPrompt, int maxTokens) throws AiCallException {
+        AiConfig config = configService.get();
         Map<String, Object> body = Map.of(
-                "model", model,
+                "model", config.getModel(),
                 "response_format", Map.of("type", "json_object"),
                 "messages", List.of(
                         Map.of("role", "system", "content", systemPrompt),
                         Map.of("role", "user", "content", userPrompt)),
                 "max_tokens", maxTokens,
-                "temperature", 0.3);
+                "temperature", config.getTemperature());
 
         try {
-            String response = client.post()
+            String response = client().post()
                     .uri("/chat/completions")
                     .body(body)
                     .retrieve()
@@ -74,7 +85,7 @@ public class DeepSeekClient {
             JsonNode root = objectMapper.readTree(response);
             return root.path("choices").path(0).path("message").path("content").asText();
         } catch (Exception e) {
-            throw new AiCallException("DeepSeek 调用失败: " + e.getMessage(), e);
+            throw new AiCallException("模型调用失败: " + e.getMessage(), e);
         }
     }
 
