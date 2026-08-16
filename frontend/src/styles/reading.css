@@ -93,17 +93,24 @@
   color: #fff;
 }
 
-/* 双栏布局（桌面 ≥1024px） */
+/* 双栏布局（桌面 ≥1024px）：目录列 200px + 双栏 1fr/1fr（show-zh 时三列） */
 .reading-layout {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 1fr 0fr;
+  grid-template-columns: 200px 1fr 0fr;
   transition: grid-template-columns 0.3s ease-out;
 }
 
 .reading-layout.show-zh {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 200px 1fr 1fr;
+}
+
+/* 目录列 */
+.toc-col {
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+  min-width: 0;
 }
 
 .en-pane,
@@ -145,8 +152,9 @@
   }
 }
 
-/* 移动端 Tab 切换 */
+/* 移动端 Tab 切换（relative 供目录下拉 absolute 定位） */
 .mobile-tabs {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 4px;

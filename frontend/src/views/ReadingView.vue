@@ -8,7 +8,7 @@
       @toggle-zh="showZh = !showZh"
     >
       <template #actions>
-        <!-- 移动端：英文/中文 Tab + 对照模式切换 -->
+        <!-- 移动端：英文/中文 Tab + 对照模式 + 目录 -->
         <div v-if="isMobile" class="mobile-tabs">
           <button
             class="tab-btn"
@@ -32,6 +32,24 @@
           >
             ⇅
           </button>
+          <button
+            class="tab-btn mode"
+            :class="{ active: tocOpen }"
+            title="目录"
+            @click="tocOpen = !tocOpen"
+          >
+            ☰
+          </button>
+          <!-- 折叠目录下拉（移动端） -->
+          <ChapterToc
+            v-if="tocOpen"
+            :groups="store.chapterGroups"
+            :active-id="activeChapter"
+            variant="dropdown"
+            @select="(a) => { tocOpen = false; scrollToChapter(a) }"
+            @prev="goAdjacent(-1)"
+            @next="goAdjacent(1)"
+          />
         </div>
         <!-- 朗读控制 -->
         <div class="tts-controls">
@@ -57,19 +75,29 @@
       </template>
     </ArticleToolbar>
 
-    <!-- 桌面双栏 -->
+    <!-- 桌面：目录列 + 双栏 -->
     <div v-if="!isMobile" class="reading-layout" :class="{ 'show-zh': showZh }">
+      <aside class="toc-col">
+        <ChapterToc
+          :groups="store.chapterGroups"
+          :active-id="activeChapter"
+          variant="aside"
+          @select="scrollToChapter"
+          @prev="goAdjacent(-1)"
+          @next="goAdjacent(1)"
+        />
+      </aside>
       <SentencePane
         ref="enPaneRef"
         side="en"
-        :sentences="store.sentences"
+        :chapter-groups="store.chapterGroups"
         @sentence-click="onSentenceClick"
       />
       <SentencePane
         v-show="showZh"
         ref="zhPaneRef"
         side="zh"
-        :sentences="store.sentences"
+        :chapter-groups="store.chapterGroups"
         @sentence-click="onSentenceClick"
       />
     </div>
@@ -80,14 +108,14 @@
         v-if="mobileTab === 'en'"
         ref="enPaneRef"
         side="en"
-        :sentences="store.sentences"
+        :chapter-groups="store.chapterGroups"
         @sentence-click="onSentenceClick"
       />
       <SentencePane
         v-else
         ref="zhPaneRef"
         side="zh"
-        :sentences="store.sentences"
+        :chapter-groups="store.chapterGroups"
         @sentence-click="onSentenceClick"
       />
     </div>
@@ -97,13 +125,13 @@
       <SentencePane
         ref="enPaneRef"
         side="en"
-        :sentences="store.sentences"
+        :chapter-groups="store.chapterGroups"
         @sentence-click="onSentenceClick"
       />
       <SentencePane
         ref="zhPaneRef"
         side="zh"
-        :sentences="store.sentences"
+        :chapter-groups="store.chapterGroups"
         @sentence-click="onSentenceClick"
       />
     </div>
@@ -132,6 +160,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { articleApi, type ArticleDto, type SentenceDto } from '@/api/article'
 import ArticleToolbar from '@/components/reading/ArticleToolbar.vue'
+import ChapterToc from '@/components/reading/ChapterToc.vue'
 import SentenceBubble from '@/components/reading/SentenceBubble.vue'
 import SentencePane from '@/components/reading/SentencePane.vue'
 import { useReadTracking } from '@/composables/useReadTracking'
@@ -169,6 +198,51 @@ const isMobile = computed(() => !isDesktop.value)
 const mobileTab = ref<'en' | 'zh'>('en')
 const mobileMode = ref<'tab' | 'dual'>('tab')
 
+// ---------- 目录 ----------
+
+/** 当前章锚点（'legacy'=无章节旧文章合成章） */
+const activeChapter = ref<number | null>(null)
+/** 移动端目录下拉开关 */
+const tocOpen = ref(false)
+let chapterObserver: IntersectionObserver | null = null
+
+/** 章节标题高亮观察：root=当前挂载的滚动容器，进入视口顶部 25% 区的章置为当前 */
+function observeChapters() {
+  chapterObserver?.disconnect()
+  chapterObserver = null
+  const root = isDesktop.value ? enScroller.value : enScroller.value ?? zhScroller.value
+  if (!root || typeof IntersectionObserver === 'undefined') return
+  chapterObserver = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          const anchor = (e.target as HTMLElement).dataset.chapter ?? 'legacy'
+          activeChapter.value = anchor === 'legacy' ? null : Number(anchor)
+        }
+      }
+    },
+    { root, rootMargin: '0px 0px -75% 0px', threshold: 0 },
+  )
+  root.querySelectorAll('[data-chapter]').forEach((el) => chapterObserver!.observe(el))
+}
+
+/** 滚动到指定章（[data-chapter] 锚点；瞬时跳转与 scrollSync 互斥锁语义一致，避免 smooth 回弹） */
+function scrollToChapter(anchor: string) {
+  const sel = `[data-chapter="${anchor}"]`
+  enScroller.value?.querySelector(sel)?.scrollIntoView({ block: 'start', behavior: 'auto' })
+  zhScroller.value?.querySelector(sel)?.scrollIntoView({ block: 'start', behavior: 'auto' })
+}
+
+/** 上/下一章（相对当前高亮章） */
+function goAdjacent(dir: -1 | 1) {
+  const groups = store.chapterGroups
+  if (!groups.length) return
+  const idx = groups.findIndex((g) => (g.id ?? 'legacy') === (activeChapter.value ?? 'legacy'))
+  const next = idx === -1 ? (dir > 0 ? 0 : groups.length - 1) : idx + dir
+  if (next < 0 || next >= groups.length) return
+  scrollToChapter(groups[next].id === null ? 'legacy' : String(groups[next].id))
+}
+
 /** 切换 Tab：重建 pane 后重新观察进度 */
 function switchMobileTab(tab: 'en' | 'zh') {
   if (mobileTab.value === tab) return
@@ -182,13 +256,14 @@ function toggleMobileMode() {
   nextTick(reObserve)
 }
 
-/** 重建 IntersectionObserver（pane 切换后新句子需重新观察） */
+/** 重建 IntersectionObserver（pane 切换后新句子需重新观察；章节高亮观察器同步重建） */
 function reObserve() {
   if (isDesktop.value) {
     tracking.observe(enScroller.value)
   } else {
     tracking.observe(null)
   }
+  observeChapters()
 }
 
 const scrollSync = useScrollSync(enScroller, zhScroller)
@@ -259,7 +334,14 @@ async function load() {
   try {
     const payload = await articleApi.reading(id)
     article.value = payload.article
-    store.load(id, payload.sentences, payload.progress.progress, payload.progress.isCompleted)
+    store.load(
+      id,
+      payload.sentences,
+      payload.chapters,
+      payload.article.title,
+      payload.progress.progress,
+      payload.progress.isCompleted,
+    )
     store.setLearningData(payload.vocabWords, payload.favSentenceIds)
     tracking.init(payload.progress.readSentences)
     await scrollSync.measure()
@@ -269,6 +351,7 @@ async function load() {
     } else {
       tracking.observe(null)
     }
+    observeChapters()
     tracking.start()
   } catch {
     errorMsg.value = '文章加载失败，可能已下架或不存在'
@@ -279,6 +362,7 @@ async function load() {
 
 function onMqlChange(e: MediaQueryListEvent) {
   isDesktop.value = e.matches
+  tocOpen.value = false
   scrollSync.setEnabled(e.matches)
   scrollSync.measure()
   if (e.matches) {
@@ -286,6 +370,7 @@ function onMqlChange(e: MediaQueryListEvent) {
   } else {
     tracking.observe(null)
   }
+  observeChapters()
 }
 
 onMounted(() => {

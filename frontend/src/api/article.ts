@@ -16,8 +16,10 @@ export interface ArticleDto {
 
 export interface SentenceDto {
   id: number
+  /** 章节 id（NULL=无章节旧数据，归入单章） */
+  chapterId: number | null
   seq: number
-  /** 段落号（段落流式排版） */
+  /** 章内段落号（段落流式排版） */
   para: number
   en: string
   zh: string | null
@@ -33,8 +35,17 @@ export interface ProgressView {
   isCompleted: boolean
 }
 
+export interface ChapterDto {
+  /** 章节 id（旧文章合成单章时为 null） */
+  id: number | null
+  seq: number
+  title: string
+}
+
 export interface ReadingPayload {
   article: ArticleDto
+  /** 章节列表（恒非空） */
+  chapters: ChapterDto[]
   sentences: SentenceDto[]
   progress: ProgressView
   vocabWords: string[]
