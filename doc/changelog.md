@@ -35,3 +35,11 @@
 - 2026-08-16：修复 JDBC URL `characterEncoding=utf8mb4` 编码错误（Connector/J 不支持，改 utf8；同步修正 application.yml、application-local.yml、README）
 - 2026-08-16：GlobalExceptionHandler 增加 NoResourceFoundException → 404（此前不存在接口返回 500）
 - 2026-08-16：**步骤 3 验收通过**（13 项 curl 验证）：注册/重复注册 400/登录/token 访问 me/无 token 401/旧密码错误 400/改密成功/新密码登录/admin 登录带 mustChangePassword=true/改密后标记清除/普通用户访问 admin 403/admin 访问不存在接口 404
+
+## 步骤 4 — 文章后端
+
+- 2026-08-16：SentenceSplitter 句子切分器（. ! ? 句界、缩写白名单 + 多段缩写 u.s/e.g、数字小数点保护、点后字母视为缩写中间点、句尾引号归属、空白折叠）；单元测试 10 用例（含 Mr./U.S./e.g./3.14/引号/空输入）
+- 2026-08-16：Article/Sentence/SentenceAnnotation/UserProgress/UserFavoriteSentence 实体 + Mapper（含级联删除注解 SQL）
+- 2026-08-16：管理端文章 CRUD + 上/下架（POST/PUT/DELETE /api/admin/articles、POST /{id}/status、GET 列表）；用户侧书架分页（仅上架，难度/标签过滤）、文章元信息、GET /{id}/reading 阅读载荷（元信息+句子+标注；进度/生词/收藏集合留待步骤 5 填充）
+- 2026-08-16：编辑正文变更 → 重切分（删旧句子/标注/进度）；删除 → 级联句子/标注/进度/收藏
+- 2026-08-16：**步骤 4 验收通过**：单测 10/10；curl 建文切分 8 句与人工一致（Mr./U.S./3.14/引号句均未误切）→ 默认下架书架不可见 → 上架后可见 → reading 载荷完整 → 编辑重切分为 2 句（Dr. 保护）→ 删除级联干净（文章与句子均 0 行）
