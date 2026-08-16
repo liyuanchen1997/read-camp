@@ -51,6 +51,15 @@ defineExpose({ scrollerEl })
   overscroll-behavior: contain;
 }
 
+/* 段落间距：组间空行（.sentence 为 inline，需靠 .para 的外边距分隔段落） */
+.para {
+  margin-bottom: 1.5em;
+}
+
+.para:last-child {
+  margin-bottom: 0;
+}
+
 .pane-scroller.en {
   padding: var(--space-6) clamp(24px, 4vw, 64px) var(--space-7);
 }
