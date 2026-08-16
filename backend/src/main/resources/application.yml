@@ -30,7 +30,7 @@ readcamp:
     base-url: https://api.deepseek.com
     api-key: ${DEEPSEEK_API_KEY:}
     model: deepseek-v4-flash
-    batch-size: 5
+    batch-size: 3
     timeout-seconds: 120
 
 logging:

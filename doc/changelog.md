@@ -57,6 +57,15 @@
 
 - 2026-08-16：**书架公开浏览**（用户需求）——首页/书架无需登录即可浏览文章列表与详情，进入精读阅读（/reading、进度、生词、收藏）才需登录；后端 WebConfig 放行 /api/articles 与 /api/articles/*，前端路由 / 移除 requiresAuth，已同步 doc/00-design.md §2 与 frontend/doc/README.md
 
+## 步骤 10 — AI 生成后端
+
+- 2026-08-16：DeepSeekClient（OpenAI 兼容 /chat/completions，json_object，120s 连接/读取超时，密钥走配置）；AsyncConfig AI 生成线程池（任务与请求生命周期解耦，页面关闭不中断）
+- 2026-08-16：GenTaskRegistry 内存任务注册（互斥 409 / 取消标记 / ETA）；DB gen_status 为唯一事实源，启动时重置孤儿"生成中"状态
+- 2026-08-16：AiGenerationService——分批（默认 3，字符上限 3000）、Prompt 构建（系统+输出约束）、三层解析防护（剥围栏→宽松提取→批级重试 2 次退避）、逐项校验+坏项单补、UPSERT 落库、单句生成/失败重试（3→1→2）、批间取消检查
+- 2026-08-16：管理接口——POST /{id}/generate（missing 增量/all 全量）、GET /{id}/gen-status（四态计数+逐句）、POST /sentences/{sid}/generate（单句重试）、POST /generate/cancel
+- 2026-08-16：**实测发现并修复**：① deepseek-v4-flash 为 reasoning 模型，batch=5 时思考 token 爆炸导致 content 为空 → 默认 batchSize 改 3 + max_tokens 放宽（max(8000, 3000+1500/句)）；② 批内复查过滤条件误排除 FAILED 句（任务空转）→ 改为排除 DONE/GENERATING；③ RestClient 无超时可能挂起 → 应用 120s
+- 2026-08-16：**步骤 10 验收通过**（真实 DeepSeek API）：10001 全 13 句 done（含失败句自动重试）、10002 2 句完成、重复启动 409、单句重试 200、cancel 返回正确、gen-status 四态计数准确、reading 载荷带完整标注（zh/explanation/components/words，气泡数据源就绪）
+
 ## 步骤 9 — 阅读页 v2（气泡 + TTS）
 
 - 2026-08-16：services/tts.ts——speechSynthesis 单例控制器：整篇顺序朗读（currentIndex 推进 + onProgress 回调）、语音候选 en-US→en-*→默认（voiceschanged 监听 + 无英文音色提示一次）、语速 0.5-1.5 持久化（播放中调整重播当前句）、pause 不可靠降级方案（resume 后 250ms 检查未在说话则 cancel+当前句重播）、独立朗读（单句/单词）先打断

@@ -5,7 +5,10 @@ import com.readcamp.common.Result;
 import com.readcamp.common.UserContext;
 import com.readcamp.dto.ArticleDto;
 import com.readcamp.dto.ArticleRequest;
+import com.readcamp.dto.GenStatusResponse;
+import com.readcamp.dto.GenerateRequest;
 import com.readcamp.service.ArticleService;
+import com.readcamp.service.ai.AiGenerationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,6 +29,7 @@ import java.util.Map;
 public class AdminArticleController {
 
     private final ArticleService articleService;
+    private final AiGenerationService aiGenerationService;
 
     /** 创建文章（服务端切分落库） */
     @PostMapping
@@ -60,5 +64,34 @@ public class AdminArticleController {
             @RequestParam(defaultValue = "1") long page,
             @RequestParam(defaultValue = "10") long size) {
         return Result.ok(articleService.adminList(status, keyword, page, size));
+    }
+
+    // ---------- AI 生成 ----------
+
+    /** 启动异步生成（进行中返回 409；页面关闭任务不中断，DB 状态可恢复） */
+    @PostMapping("/{id}/generate")
+    public Result<Map<String, Object>> generate(@PathVariable Long id,
+                                                @Valid @RequestBody GenerateRequest request) {
+        int total = aiGenerationService.start(id, request.getTarget(), request.getBatchSize());
+        return Result.ok(Map.of("total", total));
+    }
+
+    /** 生成进度（四态计数 + 逐句状态，管理端 2s 轮询） */
+    @GetMapping("/{id}/gen-status")
+    public Result<GenStatusResponse> genStatus(@PathVariable Long id) {
+        return Result.ok(aiGenerationService.genStatus(id));
+    }
+
+    /** 单句生成/失败重试（3 → 重新生成） */
+    @PostMapping("/{id}/sentences/{sentenceId}/generate")
+    public Result<Void> generateOne(@PathVariable Long id, @PathVariable Long sentenceId) {
+        aiGenerationService.generateOne(id, sentenceId);
+        return Result.ok();
+    }
+
+    /** 取消进行中任务（批间生效，最多浪费一个批次） */
+    @PostMapping("/{id}/generate/cancel")
+    public Result<Boolean> cancel(@PathVariable Long id) {
+        return Result.ok(aiGenerationService.cancel(id));
     }
 }
