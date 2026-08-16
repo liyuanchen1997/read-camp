@@ -43,6 +43,7 @@ Maven 在本机未加入 PATH，路径：`/Users/liyuanchen/Desktop/code/utils/a
 2. 每步完成后：更新计划表状态与日期 → 追加 changelog → 展示验收结果。
 3. 新会话/子代理接手前：先读 `doc/02-project-plan.md` 了解当前进度，再读对应模块设计文档。
 4. 不自动 git commit/push（除非用户明确要求）；提交前展示变更摘要。
+5. **提交前文档同步（强制）**：任何 git commit/push 之前，必须先对照本次变更检查相关文档是否滞后（README、CLAUDE.md、AGENTS.md、doc/**、frontend/doc/**、backend/doc/**）——新增模块/接口/表结构/配置需更新 doc/00-design.md，UI 改动需更新 doc/01-ui-design.md，功能改动追加 changelog；发现滞后先更新文档，再提交。
 
 ## 目录约定
 

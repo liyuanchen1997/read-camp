@@ -15,6 +15,7 @@
 5. **阅读区禁用 Element Plus**：`Element Plus` 仅允许用于管理后台与表单；阅读页组件零 EP 依赖（路由级懒加载隔离）。
 6. **不自动 git commit/push**：除非用户明确要求。提交前必须展示变更摘要，commit message 用简洁英文附带简洁中文。
 7. **红线操作先问**：删除文件/目录、修改 .env/密钥/CI 配置、git push/rebase/reset --hard、公开发布——即使在 auto-accept 模式也必须先征求用户确认。
+8. **提交前文档同步（强制）**：每次 git commit/push 前必须先检查文档滞后：对照 diff 检查 README、CLAUDE.md、AGENTS.md、doc/**、frontend/doc/**、backend/doc/**；新增/变更模块、接口、表结构、配置、UI 必须同步更新对应设计文档与 changelog；确认无滞后后才允许提交。
 
 ## 技术约定
 

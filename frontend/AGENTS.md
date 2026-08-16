@@ -17,3 +17,4 @@
 - [ ] 亮/暗主题无样式错乱
 - [ ] 桌面 + 移动端关键路径走查
 - [ ] 更新 frontend/doc/ 与根 doc/changelog.md
+- [ ] 提交前对照 diff 检查文档滞后（README/doc/01-ui-design.md/根 doc/**），滞后先更新再提交
