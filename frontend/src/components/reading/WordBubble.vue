@@ -1,10 +1,15 @@
 <template>
   <Teleport to="body">
-    <div ref="bubbleEl" class="bubble word-bubble" :style="style" role="dialog">
+    <div
+      ref="bubbleEl"
+      class="bubble word-bubble"
+      :style="style"
+      @mouseenter="emit('enter')"
+      @mouseleave="emit('leave')"
+    >
       <div class="wb-head">
         <span class="wb-word">{{ word.word }}</span>
         <span v-if="word.pos" class="wb-pos">{{ word.pos }}</span>
-        <button class="close-btn" title="关闭" @click="emit('close')">✕</button>
       </div>
 
       <p v-if="word.meaning" class="wb-meaning">{{ word.meaning }}</p>
@@ -36,7 +41,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  close: []
+  enter: []
+  leave: []
 }>()
 
 const store = useReadingStore()
@@ -49,7 +55,8 @@ watch(
   () => props.anchor,
   async () => {
     await nextTick()
-    style.value = bubbleStyle(props.anchor, bubbleEl.value)
+    // 单词浮层：紧凑宽度（280px），内容自适应
+    style.value = bubbleStyle(props.anchor, bubbleEl.value, 280)
   },
   { immediate: true },
 )
@@ -83,7 +90,7 @@ async function toggleVocab() {
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow);
-  padding: var(--space-4);
+  padding: var(--space-3);
   font-size: 0.9rem;
 }
 

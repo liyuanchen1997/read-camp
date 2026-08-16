@@ -31,13 +31,14 @@
           </span>
         </div>
 
-        <!-- 单词列表 -->
+        <!-- 单词列表：鼠标移入即冒泡单词解释 -->
         <div v-if="sentence.words?.length" class="bubble-words">
           <button
             v-for="(w, i) in sentence.words"
             :key="i"
             class="word-item"
-            @click="emit('word-click', w, $event)"
+            @mouseenter="onWordEnter(w, $event)"
+            @mouseleave="onWordLeave"
           >
             <span class="w-word">{{ w.word }}</span>
             <span v-if="w.pos" class="w-pos">{{ w.pos }}</span>
@@ -58,33 +59,83 @@
         <button class="action-btn" @click="speakSentence">🔊 朗读本句</button>
       </div>
     </div>
+
+    <!-- 单词解释浮层（hover 触发，锚定单词项） -->
+    <WordBubble
+      v-if="hoveredWord"
+      :word="hoveredWord.word"
+      :anchor="hoveredWord.anchor"
+      :source-article-id="sourceArticleId"
+      :context-sentence="sentence.en"
+      @enter="cancelCloseTimer"
+      @leave="scheduleClose"
+    />
   </Teleport>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import type { CSSProperties } from 'vue'
 import { favoriteApi } from '@/api/favorite'
 import type { SentenceDto } from '@/api/article'
 import { useReadingStore } from '@/stores/reading'
 import { tts } from '@/services/tts'
 import { bubbleStyle } from '@/utils/bubble'
+import WordBubble from './WordBubble.vue'
 
 const props = defineProps<{
   sentence: SentenceDto
   anchor: DOMRect
+  sourceArticleId?: number | null
 }>()
 
 const emit = defineEmits<{
   close: []
-  'word-click': [word: { word: string; pos?: string; meaning?: string; role?: string }, event: MouseEvent]
 }>()
 
 const store = useReadingStore()
 const bubbleEl = ref<HTMLElement | null>(null)
 const style = ref<CSSProperties>({ position: 'fixed', left: '-9999px' })
 
+/** hover 的单词浮层状态 */
+const hoveredWord = ref<{
+  word: { word: string; pos?: string; meaning?: string; role?: string }
+  anchor: DOMRect
+} | null>(null)
+
+let closeTimer: number | null = null
+
 const isFav = computed(() => store.isFav(props.sentence.id))
+
+function onWordEnter(
+  w: { word: string; pos?: string; meaning?: string; role?: string },
+  event: MouseEvent,
+) {
+  cancelCloseTimer()
+  const el = (event.target as HTMLElement).closest('.word-item')
+  const anchor = el?.getBoundingClientRect() ?? new DOMRect(0, 0, 0, 0)
+  hoveredWord.value = { word: w, anchor }
+}
+
+function onWordLeave() {
+  scheduleClose()
+}
+
+function scheduleClose() {
+  cancelCloseTimer()
+  closeTimer = window.setTimeout(() => {
+    hoveredWord.value = null
+  }, 180)
+}
+
+function cancelCloseTimer() {
+  if (closeTimer !== null) {
+    window.clearTimeout(closeTimer)
+    closeTimer = null
+  }
+}
+
+onBeforeUnmount(cancelCloseTimer)
 
 // 渲染后测量高度，计算翻转定位
 watch(

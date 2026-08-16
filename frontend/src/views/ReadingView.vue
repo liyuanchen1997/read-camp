@@ -47,21 +47,12 @@
       />
     </div>
 
-    <!-- 句子气泡 -->
+    <!-- 句子气泡（单词解释为气泡内 hover 浮层） -->
     <SentenceBubble
       v-if="bubble?.type === 'sentence'"
       :sentence="bubble.sentence"
       :anchor="bubble.anchor"
-      @close="closeBubble"
-      @word-click="onWordClick"
-    />
-    <!-- 单词气泡 -->
-    <WordBubble
-      v-if="bubble?.type === 'word'"
-      :word="bubble.word"
-      :anchor="bubble.anchor"
       :source-article-id="store.articleId"
-      :context-sentence="wordContextSentence"
       @close="closeBubble"
     />
 
@@ -82,17 +73,13 @@ import { articleApi, type ArticleDto, type SentenceDto } from '@/api/article'
 import ArticleToolbar from '@/components/reading/ArticleToolbar.vue'
 import SentenceBubble from '@/components/reading/SentenceBubble.vue'
 import SentencePane from '@/components/reading/SentencePane.vue'
-import WordBubble from '@/components/reading/WordBubble.vue'
 import { useReadTracking } from '@/composables/useReadTracking'
 import { useScrollSync } from '@/composables/useScrollSync'
 import { tts } from '@/services/tts'
 import { useReadingStore } from '@/stores/reading'
 import '@/styles/reading.css'
 
-type BubbleState =
-  | { type: 'sentence'; sentence: SentenceDto; anchor: DOMRect }
-  | { type: 'word'; word: { word: string; pos?: string; meaning?: string; role?: string }; anchor: DOMRect }
-  | null
+type BubbleState = { type: 'sentence'; sentence: SentenceDto; anchor: DOMRect } | null
 
 const route = useRoute()
 const store = useReadingStore()
@@ -102,7 +89,6 @@ const showZh = ref(false)
 const loading = ref(true)
 const errorMsg = ref('')
 const bubble = ref<BubbleState>(null)
-const wordContextSentence = ref('')
 
 const ttsState = ref(tts.getState())
 const ttsRate = ref(tts.getRate())
@@ -126,18 +112,6 @@ function onSentenceClick(sentence: SentenceDto, event: MouseEvent) {
   const el = (event.target as HTMLElement).closest('.sentence')
   const anchor = el?.getBoundingClientRect() ?? new DOMRect(0, 0, 0, 0)
   bubble.value = { type: 'sentence', sentence, anchor }
-}
-
-function onWordClick(
-  word: { word: string; pos?: string; meaning?: string; role?: string },
-  event: MouseEvent,
-) {
-  const el = (event.target as HTMLElement).closest('.word-item')
-  const anchor = el?.getBoundingClientRect() ?? new DOMRect(0, 0, 0, 0)
-  if (bubble.value?.type === 'sentence') {
-    wordContextSentence.value = bubble.value.sentence.en
-  }
-  bubble.value = { type: 'word', word, anchor }
 }
 
 function closeBubble() {
