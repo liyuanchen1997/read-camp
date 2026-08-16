@@ -4,6 +4,10 @@ import type { PageResult } from '@/types/api'
 export interface FavoriteItem {
   sentenceId: number
   en: string
+  /** 中文翻译（AI 标注） */
+  zh?: string | null
+  /** 中文讲解（AI 标注） */
+  explanation?: string | null
   seq: number
   articleId: number
   articleTitle: string

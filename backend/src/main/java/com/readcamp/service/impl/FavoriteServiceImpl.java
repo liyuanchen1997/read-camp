@@ -6,8 +6,10 @@ import com.readcamp.common.ApiException;
 import com.readcamp.dto.FavoriteItem;
 import com.readcamp.entity.Article;
 import com.readcamp.entity.Sentence;
+import com.readcamp.entity.SentenceAnnotation;
 import com.readcamp.entity.UserFavoriteSentence;
 import com.readcamp.mapper.ArticleMapper;
+import com.readcamp.mapper.SentenceAnnotationMapper;
 import com.readcamp.mapper.SentenceMapper;
 import com.readcamp.mapper.UserFavoriteSentenceMapper;
 import com.readcamp.service.FavoriteService;
@@ -27,6 +29,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     private final UserFavoriteSentenceMapper favoriteMapper;
     private final SentenceMapper sentenceMapper;
     private final ArticleMapper articleMapper;
+    private final SentenceAnnotationMapper annotationMapper;
 
     @Override
     public Page<FavoriteItem> list(Long userId, long page, long size) {
@@ -48,6 +51,12 @@ public class FavoriteServiceImpl implements FavoriteService {
                 articleMap = articleMapper.selectBatchIds(articleIds).stream()
                         .collect(Collectors.toMap(Article::getId, Function.identity()));
             }
+            // AI 标注（翻译/讲解），句子未生成标注时为 null
+            Map<Long, SentenceAnnotation> annMap = annotationMapper.selectList(
+                            new LambdaQueryWrapper<SentenceAnnotation>()
+                                    .in(SentenceAnnotation::getSentenceId, sentenceIds))
+                    .stream()
+                    .collect(Collectors.toMap(SentenceAnnotation::getSentenceId, Function.identity()));
             Map<Long, Article> finalArticleMap = articleMap;
             for (UserFavoriteSentence fav : result.getRecords()) {
                 Sentence sentence = sentenceMap.get(fav.getSentenceId());
@@ -57,6 +66,11 @@ public class FavoriteServiceImpl implements FavoriteService {
                 FavoriteItem item = new FavoriteItem();
                 item.setSentenceId(sentence.getId());
                 item.setEn(sentence.getContentEn());
+                SentenceAnnotation ann = annMap.get(sentence.getId());
+                if (ann != null) {
+                    item.setZh(ann.getContentZh());
+                    item.setExplanation(ann.getExplanation());
+                }
                 item.setSeq(sentence.getSeq());
                 item.setArticleId(sentence.getArticleId());
                 Article article = finalArticleMap.get(sentence.getArticleId());

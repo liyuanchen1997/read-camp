@@ -14,6 +14,12 @@ public class VocabItem {
     private Long sourceArticleId;
     /** 出处原句 */
     private String contextSentence;
+    /** 词性（来自出处句 AI 标注，可能为 null） */
+    private String pos;
+    /** 中文意思（来自出处句 AI 标注，可能为 null） */
+    private String meaning;
+    /** 在句中的作用（来自出处句 AI 标注，可能为 null） */
+    private String role;
     private LocalDateTime createdAt;
 
     public static VocabItem from(UserVocab vocab) {

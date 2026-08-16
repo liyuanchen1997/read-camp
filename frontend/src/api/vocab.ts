@@ -6,6 +6,12 @@ export interface VocabItem {
   word: string
   sourceArticleId: number | null
   contextSentence: string | null
+  /** 词性（来自出处句 AI 标注） */
+  pos?: string | null
+  /** 中文意思 */
+  meaning?: string | null
+  /** 在句中的作用 */
+  role?: string | null
   createdAt: string
 }
 

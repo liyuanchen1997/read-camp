@@ -4,7 +4,12 @@
 
     <div v-if="items.length" class="fav-list">
       <div v-for="item in items" :key="item.sentenceId" class="fav-item">
-        <p class="fav-en">{{ item.en }}</p>
+        <div class="fav-en-row">
+          <p class="fav-en">{{ item.en }}</p>
+          <button class="speak-btn" title="朗读本句" @click="tts.speak(item.en)">🔊</button>
+        </div>
+        <p v-if="item.zh" class="fav-zh">{{ item.zh }}</p>
+        <p v-if="item.explanation" class="fav-expl">{{ item.explanation }}</p>
         <div class="fav-meta">
           <router-link :to="`/reading/${item.articleId}`" class="fav-article">
             {{ item.articleTitle }} · 第 {{ item.seq + 1 }} 句
@@ -30,6 +35,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { favoriteApi, type FavoriteItem } from '@/api/favorite'
+import { tts } from '@/services/tts'
 import { formatRelativeTime } from '@/utils/format'
 
 const items = ref<FavoriteItem[]>([])
@@ -91,11 +97,50 @@ onMounted(() => fetchPage(1))
   padding: var(--space-4);
 }
 
+.fav-en-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
 .fav-en {
   font-family: var(--font-serif-en);
   font-size: 1rem;
   line-height: 1.8;
   color: var(--ink);
+  flex: 1;
+}
+
+.speak-btn {
+  border: none;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.speak-btn:hover {
+  color: var(--accent);
+  background: var(--bg-hover);
+}
+
+.fav-zh {
+  font-family: var(--font-serif-zh);
+  color: var(--ink-2);
+  font-size: 0.9rem;
+  line-height: 1.8;
+  margin-top: var(--space-1);
+}
+
+.fav-expl {
+  color: var(--ink-3);
+  font-size: 0.82rem;
+  line-height: 1.7;
+  margin-top: var(--space-1);
 }
 
 .fav-meta {

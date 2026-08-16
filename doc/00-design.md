@@ -44,8 +44,8 @@
 | 文章 | GET /articles/{id} | 元信息 | **公开** |
 | 阅读 | GET /articles/{id}/reading | **一次拉全**：元信息+全部句子(含标注+para 段落号)+我的进度+生词集合+收藏集合 | 登录 |
 | 阅读 | POST /articles/{id}/progress | 批量上报已读索引，服务端并集去重，返回 {progress,isCompleted} | 登录 |
-| 生词 | GET/POST /vocab，DELETE /vocab/{word} | 分页列表/加入(幂等)/删除 | 登录 |
-| 收藏 | GET/POST /favorites/sentences，DELETE /favorites/sentences/{sentenceId} | 分页/收藏/取消 | 登录 |
+| 生词 | GET/POST /vocab，DELETE /vocab/{word} | 分页列表（按出处句 AI 标注带出 pos/meaning/role 解释）/加入(幂等)/删除 | 登录 |
+| 收藏 | GET/POST /favorites/sentences，DELETE /favorites/sentences/{sentenceId} | 分页（带出标注的 zh 翻译与 explanation 讲解）/收藏/取消 | 登录 |
 | 管理 | POST/PUT/DELETE /admin/articles[/{id}] | CRUD；编辑正文 → 重切分 + 清标注/进度（前端确认弹窗） | 管理员 |
 | 管理 | POST /admin/articles/{id}/status | 上架/下架 {status:0\|1} | 管理员 |
 | 管理 | GET /admin/articles | 管理列表（含生成进度汇总） | 管理员 |

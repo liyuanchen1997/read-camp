@@ -16,7 +16,13 @@
     <div v-if="items.length" class="vocab-list">
       <div v-for="item in items" :key="item.id" class="vocab-item">
         <div class="vocab-main">
-          <h3 class="vocab-word">{{ item.word }}</h3>
+          <div class="vocab-head">
+            <h3 class="vocab-word">{{ item.word }}</h3>
+            <span v-if="item.pos" class="vocab-pos">{{ item.pos }}</span>
+            <button class="speak-btn" title="发音" @click="tts.speak(item.word)">🔊</button>
+          </div>
+          <p v-if="item.meaning" class="vocab-meaning">{{ item.meaning }}</p>
+          <p v-if="item.role" class="vocab-role">{{ item.role }}</p>
           <p v-if="item.contextSentence" class="vocab-context">{{ item.contextSentence }}</p>
         </div>
         <div class="vocab-side">
@@ -41,6 +47,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { vocabApi, type VocabItem } from '@/api/vocab'
+import { tts } from '@/services/tts'
 import { formatRelativeTime } from '@/utils/format'
 
 const items = ref<VocabItem[]>([])
@@ -147,16 +154,58 @@ onMounted(() => fetchPage(1))
   min-width: 0;
 }
 
+.vocab-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
 .vocab-word {
   font-family: var(--font-serif-en);
   font-size: 1.15rem;
   color: var(--accent);
 }
 
-.vocab-context {
-  color: var(--ink-2);
-  font-size: 0.85rem;
+.vocab-pos {
+  font-size: 0.75rem;
+  color: var(--ink-3);
+  font-style: italic;
+}
+
+.speak-btn {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: all var(--transition-fast);
+}
+
+.speak-btn:hover {
+  color: var(--accent);
+  background: var(--bg-hover);
+}
+
+.vocab-meaning {
+  color: var(--ink);
+  font-size: 0.95rem;
   margin-top: var(--space-1);
+}
+
+.vocab-role {
+  color: var(--ink-2);
+  font-size: 0.82rem;
+  margin-top: 2px;
+  line-height: 1.6;
+}
+
+.vocab-context {
+  color: var(--ink-3);
+  font-size: 0.82rem;
+  margin-top: var(--space-2);
   line-height: 1.6;
   display: -webkit-box;
   -webkit-line-clamp: 2;
