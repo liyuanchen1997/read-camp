@@ -1,7 +1,7 @@
 <template>
   <header class="app-header">
     <div class="header-inner">
-      <router-link to="/" class="logo">ReadCamp</router-link>
+      <router-link to="/" class="logo">英语精读训练营</router-link>
 
       <nav class="nav">
         <router-link to="/" class="nav-link" active-class="active">书架</router-link>
@@ -112,11 +112,11 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
 }
 
 .logo {
-  font-family: var(--font-serif-en);
-  font-size: 1.35rem;
+  font-family: var(--font-serif-zh);
+  font-size: 1.15rem;
   font-weight: 700;
   color: var(--accent);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
 }
 
 .nav {

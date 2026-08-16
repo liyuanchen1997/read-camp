@@ -1,5 +1,5 @@
 -- ============================================================
--- ReadCamp 种子数据
+-- 英语精读训练营 种子数据
 -- 幂等：已存在则跳过（ON DUPLICATE KEY UPDATE 自赋值 no-op），
 --       重复执行不会覆盖用户/管理员修改过的数据
 -- 执行：mysql -uroot -p readcamp < seed.sql（先执行 schema.sql）
@@ -35,19 +35,19 @@ VALUES (
 )
 ON DUPLICATE KEY UPDATE `id` = `id`;
 
--- 句子（seq 0 起，与 SentenceSplitter 规则一致：. ! ? 切分）
-INSERT INTO `sentence` (`article_id`, `seq`, `content_en`) VALUES
-(10001, 0,  'Once upon a time, a lion was sleeping under a big tree.'),
-(10001, 1,  'A little mouse ran across the lion''s nose and woke him up.'),
-(10001, 2,  'The lion caught the mouse and opened his big mouth to eat him.'),
-(10001, 3,  '"Please let me go," cried the little mouse.'),
-(10001, 4,  '"If you let me go, I will help you one day."'),
-(10001, 5,  'The lion laughed and let the mouse go.'),
-(10001, 6,  'A few days later, the lion was caught in a hunter''s net.'),
-(10001, 7,  'He roared and struggled, but he could not escape.'),
-(10001, 8,  'The little mouse heard the lion''s roar and ran to help.'),
-(10001, 9,  'She gnawed through the ropes with her sharp teeth.'),
-(10001, 10, 'Soon the lion was free.'),
-(10001, 11, '"Thank you, little mouse," said the lion.'),
-(10001, 12, '"Even the smallest friend can be a great helper."')
+-- 句子（seq/para 0 起，与 SentenceSplitter 规则一致：空行分段 + . ! ? 切分；示例为单段落）
+INSERT INTO `sentence` (`article_id`, `seq`, `para`, `content_en`) VALUES
+(10001, 0,  0, 'Once upon a time, a lion was sleeping under a big tree.'),
+(10001, 1,  0, 'A little mouse ran across the lion''s nose and woke him up.'),
+(10001, 2,  0, 'The lion caught the mouse and opened his big mouth to eat him.'),
+(10001, 3,  0, '"Please let me go," cried the little mouse.'),
+(10001, 4,  0, '"If you let me go, I will help you one day."'),
+(10001, 5,  0, 'The lion laughed and let the mouse go.'),
+(10001, 6,  0, 'A few days later, the lion was caught in a hunter''s net.'),
+(10001, 7,  0, 'He roared and struggled, but he could not escape.'),
+(10001, 8,  0, 'The little mouse heard the lion''s roar and ran to help.'),
+(10001, 9,  0, 'She gnawed through the ropes with her sharp teeth.'),
+(10001, 10, 0, 'Soon the lion was free.'),
+(10001, 11, 0, '"Thank you, little mouse," said the lion.'),
+(10001, 12, 0, '"Even the smallest friend can be a great helper."')
 ON DUPLICATE KEY UPDATE `seq` = `seq`;

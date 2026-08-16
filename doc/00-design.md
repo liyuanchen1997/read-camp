@@ -13,7 +13,7 @@
 |---|---|
 | `user` | 用户（role 0普通/1管理员，must_change_password 首登改密标记） |
 | `article` | 文章元信息 + 英文全文原文（content_en MEDIUMTEXT） |
-| `sentence` | 逐句英文，上传时服务端切分落库（article_id + seq 唯一） |
+| `sentence` | 逐句英文，上传时服务端切分落库（article_id + seq 唯一，**para 段落号 0 起**——按原文空行分段，前端段落流式排版用） |
 | `sentence_annotation` | AI 产出 1:1 sentence：中文翻译/句子解释/句子成分 JSON/单词标注 JSON/gen_status 状态机 |
 | `user_progress` | 阅读进度（read_sentences 已读索引 JSON + progress 冗余值 + is_completed + last_read_at） |
 | `user_vocab` | 生词本（user_id+word 唯一，小写规范化，存出处句） |
@@ -21,7 +21,7 @@
 
 ### 关键设计决策
 
-- **正文切分**：管理端上传/编辑时，原文存 `article.content_en`，同时 `SentenceSplitter` 切分逐句写 `sentence` 表（含 seq）。阅读页不做切分。切分规则：`.` `!` `?` 为句界；缩写白名单保护（Mr. U.S. e.g. 等）+ 数字小数点不切；引号句尾句号归入引号内。
+- **正文切分**：管理端上传/编辑时，原文存 `article.content_en`，同时 `SentenceSplitter` 切分逐句写 `sentence` 表（含 seq 与 **para 段落号**）。阅读页不做切分。切分规则：先按空行（`\n\n`）分段（段落号 0 起），段内以 `.` `!` `?` 为句界；缩写白名单保护（Mr. U.S. e.g. 等）+ 数字小数点不切；引号句尾句号归入引号内；段内单个换行折叠为空格。**阅读页排版**：按段落分组渲染，段落内句子 inline 流式（视觉为正常文章），段落间空行；句子级元素保留用于悬停高亮/点击气泡/同步滚动锚点。
 - **整篇翻译不单独生成**：= 逐句 `content_zh` 按 seq 拼接。零额外成本且天然逐句对齐；"连贯语体全文"列为 v2。
 - **JSON 字段**：`article.tags`、`sentence_annotation.components`（`[{type:"主语", text, detail}]` 中文语法术语）、`sentence_annotation.words`（`[{word, pos, meaning, role}]` 覆盖全部实词）、`user_progress.read_sentences`（索引数组）。
 - **衍生指标不落库**：精读文章数量 = `COUNT(user_progress WHERE user_id=? AND is_completed=1)` 实时聚合。
@@ -41,7 +41,7 @@
 | 用户 | GET /users/me/recent-reading | 按 last_read_at 倒序带进度 | 登录 |
 | 文章 | GET /articles?page&size&keyword&difficulty&tag | 书架分页（仅上架） | **公开** |
 | 文章 | GET /articles/{id} | 元信息 | **公开** |
-| 阅读 | GET /articles/{id}/reading | **一次拉全**：元信息+全部句子(含标注)+我的进度+生词集合+收藏集合 | 登录 |
+| 阅读 | GET /articles/{id}/reading | **一次拉全**：元信息+全部句子(含标注+para 段落号)+我的进度+生词集合+收藏集合 | 登录 |
 | 阅读 | POST /articles/{id}/progress | 批量上报已读索引，服务端并集去重，返回 {progress,isCompleted} | 登录 |
 | 生词 | GET/POST /vocab，DELETE /vocab/{word} | 分页列表/加入(幂等)/删除 | 登录 |
 | 收藏 | GET/POST /favorites/sentences，DELETE /favorites/sentences/{sentenceId} | 分页/收藏/取消 | 登录 |

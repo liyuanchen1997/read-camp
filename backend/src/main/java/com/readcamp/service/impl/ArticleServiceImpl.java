@@ -164,6 +164,7 @@ public class ArticleServiceImpl implements ArticleService {
             SentenceDto dto = new SentenceDto();
             dto.setId(s.getId());
             dto.setSeq(s.getSeq());
+            dto.setPara(s.getPara() == null ? 0 : s.getPara());
             dto.setEn(s.getContentEn());
             SentenceAnnotation ann = annotationMap.get(s.getId());
             if (ann != null) {
@@ -231,17 +232,18 @@ public class ArticleServiceImpl implements ArticleService {
 
     /** 切分全文并落库，回填 word_count / sentence_count */
     private void splitAndStore(Article article, String content) {
-        List<String> sentences = SentenceSplitter.split(content);
+        List<SentenceSplitter.SentencePart> parts = SentenceSplitter.split(content);
         article.setWordCount(countWords(content));
-        article.setSentenceCount(sentences.size());
+        article.setSentenceCount(parts.size());
         articleMapper.updateById(article);
 
         int seq = 0;
-        for (String text : sentences) {
+        for (SentenceSplitter.SentencePart part : parts) {
             Sentence s = new Sentence();
             s.setArticleId(article.getId());
             s.setSeq(seq++);
-            s.setContentEn(text);
+            s.setPara(part.para());
+            s.setContentEn(part.text());
             sentenceMapper.insert(s);
         }
     }

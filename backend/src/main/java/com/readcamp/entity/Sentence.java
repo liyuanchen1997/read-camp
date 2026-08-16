@@ -19,6 +19,9 @@ public class Sentence {
     /** 句序，0 起 */
     private Integer seq;
 
+    /** 段落号，0 起（按原文空行分段） */
+    private Integer para;
+
     private String contentEn;
 
     private LocalDateTime createdAt;

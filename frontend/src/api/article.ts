@@ -17,6 +17,8 @@ export interface ArticleDto {
 export interface SentenceDto {
   id: number
   seq: number
+  /** 段落号（段落流式排版） */
+  para: number
   en: string
   zh: string | null
   explanation: string | null

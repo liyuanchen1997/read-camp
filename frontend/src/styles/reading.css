@@ -1,0 +1,202 @@
+/* ============================================================
+   阅读区样式（doc/01-ui-design.md §3.4 设计规范）
+   阅读区零 Element Plus 依赖，颜色一律走 tokens.css
+   ============================================================ */
+
+.reading-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg);
+}
+
+/* 工具栏 */
+.reading-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 0 var(--space-5);
+  height: 56px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  z-index: 10;
+}
+
+.toolbar-title {
+  font-family: var(--font-serif-en), var(--font-serif-zh);
+  font-size: 1.05rem;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.toolbar-progress {
+  width: 140px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.toolbar-progress .track {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bg-muted);
+  overflow: hidden;
+}
+
+.toolbar-progress .fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent);
+  transition: width 0.4s ease-out;
+}
+
+.toolbar-progress .pct {
+  font-size: 0.75rem;
+  color: var(--ink-2);
+  width: 34px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.toolbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.toolbar-btn {
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.toolbar-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.toolbar-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* 双栏布局（桌面 ≥1024px） */
+.reading-layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 0fr;
+  transition: grid-template-columns 0.3s ease-out;
+}
+
+.reading-layout.show-zh {
+  grid-template-columns: 1fr 1fr;
+}
+
+.en-pane,
+.zh-pane {
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.en-pane {
+  padding: var(--space-6) clamp(24px, 4vw, 64px) var(--space-7);
+}
+
+.zh-pane {
+  border-left: 1px solid var(--line);
+  padding: var(--space-6) clamp(24px, 4vw, 64px) var(--space-7);
+}
+
+/* 移动端（<1024px）：单列上下对照，页面整体滚动 */
+@media (max-width: 1023px) {
+  .reading-layout {
+    display: block;
+  }
+
+  .en-pane,
+  .zh-pane {
+    overflow: visible;
+    padding: var(--space-5) var(--space-4) var(--space-7);
+  }
+
+  .zh-pane {
+    border-left: none;
+    border-top: 1px solid var(--line);
+  }
+}
+
+/* 段落容器：段落间空行（正常文章排版） */
+.para {
+  margin-bottom: var(--space-5);
+}
+
+.para:last-child {
+  margin-bottom: 0;
+}
+
+/* 句子块：inline 流式排版（视觉连续成文），句子级元素保留用于交互 */
+.sentence {
+  display: inline; /* 关键：div 默认块级会一句一行，必须 inline 才连续成文 */
+  font-family: var(--font-serif-en), var(--font-serif-zh);
+  font-size: 1.5rem;
+  line-height: 1.9;
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+/* 句间空格（视觉为正常连续文章） */
+.sentence + .sentence::before {
+  content: ' ';
+}
+
+.sentence.zh {
+  font-size: 1.05rem;
+  color: var(--ink-2);
+}
+
+/* 悬停/双向联动高亮：行内淡金底（box-shadow 不改变布局，inline 无跳动） */
+.sentence:hover,
+.sentence.synced {
+  background: var(--bg-hover);
+  box-shadow: inset 2px 0 0 var(--accent), inset -2px 0 0 var(--accent);
+}
+
+/* 朗读当前句（步骤 9 使用） */
+.sentence.playing {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+/* 未生成占位 */
+.sentence .placeholder {
+  color: var(--ink-3);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+@media (max-width: 767px) {
+  .sentence {
+    font-size: 1.25rem;
+  }
+
+  .sentence.zh {
+    font-size: 0.95rem;
+  }
+}

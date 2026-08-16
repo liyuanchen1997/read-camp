@@ -6,6 +6,8 @@
 
 - 2026-08-16：用户要求——**每次 git 提交前必须检查并更新相关文档**（对照 diff 检查 README/CLAUDE/AGENTS/doc/**，滞后先更新再提交），已同步至根及前后端 CLAUDE.md / AGENTS.md
 - 2026-08-16：配置 PreToolUse hook 强制文档同步——`.claude/settings.json` + `.claude/scripts/check-doc-sync.py`（git commit/push 前自动检查：非文档变更未更新 changelog、或代码变更无 doc/ 更新 → 拦截并提示调用 git-docs-sync）
+- 2026-08-16：**品牌名调整**（用户需求）——"ReadCamp" 改为"英语精读训练营"（AppHeader/登录注册页/首页/index.html 标题/README/设计文档/种子数据注释）；代码内部标识保留（com.readcamp 包、readcamp 库名、artifactId），如需一并重命名需另行评估
+- 2026-08-16：**TTS 音色调整**（用户需求）——优先女性英文语音（Samantha/Karen/Moira 等 22 个常见女声名单）：en-US 女声 → en-* 女声 → en-US → en-* → 默认；用户手选音色仍优先（localStorage）
 
 ## 步骤 1 — 项目骨架与文档
 
@@ -54,6 +56,26 @@
 ## 规则与约定
 
 - 2026-08-16：**书架公开浏览**（用户需求）——首页/书架无需登录即可浏览文章列表与详情，进入精读阅读（/reading、进度、生词、收藏）才需登录；后端 WebConfig 放行 /api/articles 与 /api/articles/*，前端路由 / 移除 requiresAuth，已同步 doc/00-design.md §2 与 frontend/doc/README.md
+
+## 步骤 9 — 阅读页 v2（气泡 + TTS）
+
+- 2026-08-16：services/tts.ts——speechSynthesis 单例控制器：整篇顺序朗读（currentIndex 推进 + onProgress 回调）、语音候选 en-US→en-*→默认（voiceschanged 监听 + 无英文音色提示一次）、语速 0.5-1.5 持久化（播放中调整重播当前句）、pause 不可靠降级方案（resume 后 250ms 检查未在说话则 cancel+当前句重播）、独立朗读（单句/单词）先打断
+- 2026-08-16：reading store 扩展 vocabWords/favSentenceIds（载荷初始化）+ isFav/setFav/hasVocab/setVocab 乐观更新辅助
+- 2026-08-16：SentenceBubble——句子讲解气泡（fixed 锚定 + 底部空间不足自动上翻 + 左右回夹）：句子解释/中文意思/成分标签行（hover 见 detail）/单词列表（点击开单词气泡）/收藏例句（❤ 乐观更新+回滚）/朗读本句；未生成标注显示提示
+- 2026-08-16：WordBubble——单词气泡：word/pos/meaning/role + 发音 + 加入生词本（✓已加入可移除，乐观更新+回滚，带出处句）
+- 2026-08-16：ReadingView 接入——点击句子开气泡（同屏单实例）、单词点击切换词气泡、点击外部/Esc 关闭；工具栏朗读控制（▶播放/⏸暂停/⏹停止 + 语速滑块），朗读当前句高亮 + 双侧滚动跟随，离开页面 stop
+- 2026-08-16：**步骤 9 验收**：npm run build 通过（修复 SentencePane 事件透传 3 参签名）；气泡完整内容（解释/成分/单词标注）需步骤 10 生成 AI 标注后统一浏览器验收
+
+## 步骤 8 — 阅读页 v1
+
+- 2026-08-16：stores/reading.ts——hoveredIndex 单一数据源（双向高亮由两栏索引相等派生，零跨 DOM 查询）、playingIndex 预留、进度状态
+- 2026-08-16：styles/reading.css——纸感双栏布局（grid 1fr/0fr↔1fr/1fr 过渡）、句子 hover 淡金底+左缘色条、朗读句样式预留、移动端单列上下对照（<1024px 页面整体滚动）
+- 2026-08-16：SentenceBlock/SentencePane——句子块组件（data-seq 锚点、mouseenter/leave、未生成中文占位"标注未生成"）
+- 2026-08-16：useScrollSync——锚句二分（视口顶部 25% 处句子）+ scrollIntoView 瞬时定位 + 120ms 互斥锁防反馈环，桌面双栏启用
+- 2026-08-16：useReadTracking——IntersectionObserver(threshold 0.2) 已读标记，3s/30 条/pagehide 防抖批量上报，失败回填重试；桌面 root=英文栏、移动端 root=视口
+- 2026-08-16：ArticleToolbar——标题/4px 进度条/翻译开关（show-zh 列宽过渡）；ReadingView 根组件（载荷加载/错误态/返回书架）
+- 2026-08-16：**步骤 8 验收**：npm run build 通过（修复 start 导出缺失、toolbar null 类型）；/reading/10001 页面 200；阅读载荷经代理完整（13 句/进度 38%）。同步滚动/双向高亮交互体验待用户浏览器验收
+- 2026-08-16：**排版修正（用户反馈）**——阅读页改为"正常文章"展示：sentence 表新增 `para` 段落号（schema.sql/seed.sql/本地库 ALTER 同步），SentenceSplitter 按空行分段（单换行折叠为空格不切段）、测试更新为 12 用例；SentenceDto 载荷带 para；前端按段落分组渲染、段内句子 **inline 流式**（句间空格衔接，视觉连续成文），段落间空行；句子级元素保留用于悬停高亮/点击/同步滚动锚点。验证：两段文章切分 p0/p0/p1 正确，载荷与前端均生效
 
 ## 步骤 7 — 书架+近期+个人页面
 

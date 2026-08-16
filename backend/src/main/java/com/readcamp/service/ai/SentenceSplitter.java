@@ -8,13 +8,17 @@ import java.util.Set;
 /**
  * 英文句子切分器（上传文章时服务端调用，设计见 doc/00-design.md §1）
  * 规则：
+ *  - 段落：按空行（\n\n 或 \r?\n\s*\r?\n）分段，段落号 0 起；段内单个换行折叠为空格
  *  - 句界：. ! ?（含句尾引号归属：句界后紧跟的 " ' 归当前句）
  *  - 缩写保护：白名单（Mr. Dr. e.g. U.S. 等）+ 数字小数点不切
- *  - 空白（换行/多空格）折叠为单个空格；空白不产生句子
  */
 public final class SentenceSplitter {
 
     private SentenceSplitter() {
+    }
+
+    /** 切分结果：句子文本 + 段落号 */
+    public record SentencePart(String text, int para) {
     }
 
     /** 常见缩写白名单（不含末尾句点，比较时小写） */
@@ -25,23 +29,35 @@ public final class SentenceSplitter {
             "eg", "ie", "cf", "al", "approx", "est", "min", "max", "avg", "hrs"
     );
 
-    /** 多段缩写：按点分段均为单字母或白名单词，如 U.S. U.K. e.g. i.e. */
+    /** 多段缩写：如 U.S. U.K. e.g. i.e. */
     private static final Set<String> ABBREVIATIONS_MULTI = Set.of(
             "u.s", "u.k", "e.g", "i.e", "u.n", "e.u", "a.m", "p.m"
     );
 
     /**
-     * 切分全文为句子列表（trim 后非空）。
+     * 切分全文为句子列表（带段落号，trim 后非空）。
+     * 空行分段：正则匹配 \n + 任意空白 + \n（含 \r\n 平台差异）。
      */
-    public static List<String> split(String text) {
-        List<String> sentences = new ArrayList<>();
+    public static List<SentencePart> split(String text) {
+        List<SentencePart> parts = new ArrayList<>();
         if (text == null || text.isBlank()) {
-            return sentences;
+            return parts;
         }
+        String[] paragraphs = text.split("\\r?\\n\\s*\\r?\\n");
+        int para = 0;
+        for (String paragraph : paragraphs) {
+            for (String sentence : splitParagraph(paragraph)) {
+                parts.add(new SentencePart(sentence, para));
+            }
+            para++;
+        }
+        return parts;
+    }
 
-        // 规整空白：\r\n→\n，其余空白折叠为单空格
-        String normalized = text.replace("\r\n", "\n")
-                .replaceAll("\\s+", " ");
+    /** 段内切句：空白折叠为单空格，按 . ! ? 切分（缩写/数字/引号保护） */
+    private static List<String> splitParagraph(String paragraph) {
+        List<String> sentences = new ArrayList<>();
+        String normalized = paragraph.replace("\r\n", "\n").replaceAll("\\s+", " ");
 
         StringBuilder current = new StringBuilder();
         for (int i = 0; i < normalized.length(); i++) {

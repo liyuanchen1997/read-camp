@@ -1,5 +1,5 @@
 -- ============================================================
--- ReadCamp 数据库结构（8 张表）
+-- 英语精读训练营 数据库结构（7 张表）
 -- 幂等：CREATE TABLE IF NOT EXISTS，可重复执行
 -- 设计依据：doc/00-design.md §1（修改表结构需先更新该文档）
 -- 执行：mysql -uroot -p readcamp < schema.sql
@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS `sentence` (
   `id`         BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `article_id` BIGINT UNSIGNED NOT NULL COMMENT '文章 id',
   `seq`        INT             NOT NULL COMMENT '句序，0 起',
+  `para`       INT             NOT NULL DEFAULT 0 COMMENT '段落号，0 起（按原文空行分段，阅读页段落流式排版）',
   `content_en` TEXT            NOT NULL COMMENT '英文句子',
   `created_at` DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY `uk_article_seq` (`article_id`, `seq`)

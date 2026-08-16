@@ -1,7 +1,7 @@
 <template>
   <div class="home page-container">
-    <h1 class="brand">ReadCamp</h1>
-    <p class="slogan">一间安静的线上阅览室 · 英语精读训练</p>
+    <h1 class="brand">英语精读训练营</h1>
+    <p class="slogan">一间安静的线上阅览室</p>
     <p class="hint">项目骨架已就绪（步骤 1），页面开发按计划表逐步进行。</p>
   </div>
 </template>
@@ -22,10 +22,10 @@
 }
 
 .brand {
-  font-family: var(--font-serif-en);
-  font-size: 3rem;
+  font-family: var(--font-serif-zh);
+  font-size: 2.2rem;
   color: var(--accent);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.05em;
 }
 
 .slogan {

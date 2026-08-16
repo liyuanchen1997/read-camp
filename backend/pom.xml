@@ -15,7 +15,7 @@
     <artifactId>readcamp-backend</artifactId>
     <version>0.1.0</version>
     <name>readcamp-backend</name>
-    <description>ReadCamp 英语精读训练网站后端</description>
+    <description>英语精读训练营后端</description>
 
     <properties>
         <java.version>21</java.version>

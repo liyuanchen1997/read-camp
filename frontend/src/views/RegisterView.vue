@@ -1,7 +1,7 @@
 <template>
   <div class="auth-page">
     <div class="auth-card">
-      <h1 class="brand">ReadCamp</h1>
+      <h1 class="brand">英语精读训练营</h1>
       <p class="slogan">注册新读者账号</p>
 
       <form class="auth-form" @submit.prevent="onSubmit">
@@ -113,11 +113,11 @@ async function onSubmit() {
 }
 
 .brand {
-  font-family: var(--font-serif-en);
-  font-size: 2.2rem;
+  font-family: var(--font-serif-zh);
+  font-size: 1.7rem;
   color: var(--accent);
   text-align: center;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.05em;
 }
 
 .slogan {
