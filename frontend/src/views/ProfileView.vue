@@ -12,7 +12,11 @@
       <div class="profile-info">
         <h2 class="profile-name">{{ form.nickname || userStore.userInfo?.username }}</h2>
         <p class="profile-username">@{{ userStore.userInfo?.username }}</p>
-        <button v-if="userStore.isAdmin()" class="admin-btn" @click="router.push('/admin/articles')">
+        <button
+          v-if="userStore.isAdmin() && isDesktop"
+          class="admin-btn"
+          @click="router.push('/admin/articles')"
+        >
           🛠 进入管理后台
         </button>
       </div>
@@ -113,6 +117,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { authApi } from '@/api/auth'
 import { userApi } from '@/api/user'
 import { useUserStore } from '@/stores/user'
+import { isDesktop } from '@/utils/device'
 
 const route = useRoute()
 const router = useRouter()

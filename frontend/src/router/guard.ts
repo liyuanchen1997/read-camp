@@ -24,8 +24,14 @@ export async function authGuard(to: RouteLocationNormalized) {
       return { path: '/login', query: { redirect: to.fullPath } }
     }
   }
-  if (to.meta.requiresAdmin && !userStore.isAdmin()) {
-    return { path: '/' }
+  if (to.meta.requiresAdmin) {
+    // 管理后台仅桌面端可用（手机浏览不提供后台）
+    if (window.innerWidth < 1024) {
+      return { path: '/' }
+    }
+    if (!userStore.isAdmin()) {
+      return { path: '/' }
+    }
   }
   return true
 }

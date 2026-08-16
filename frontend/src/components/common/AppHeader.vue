@@ -5,7 +5,11 @@
 
       <nav class="nav">
         <router-link to="/" class="nav-link" active-class="active">书架</router-link>
-        <router-link v-if="userStore.isAdmin()" to="/admin/articles" class="nav-link">
+        <router-link
+          v-if="userStore.isAdmin() && isDesktop"
+          to="/admin/articles"
+          class="nav-link"
+        >
           管理后台
         </router-link>
       </nav>
@@ -44,7 +48,7 @@
                 <router-link to="/profile" class="menu-item" @click="menuOpen = false">
                   个人中心
                 </router-link>
-                <router-link v-if="userStore.isAdmin()" to="/admin/articles"
+                <router-link v-if="userStore.isAdmin() && isDesktop" to="/admin/articles"
                              class="menu-item" @click="menuOpen = false">
                   管理后台
                 </router-link>
@@ -67,6 +71,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useThemeStore } from '@/stores/theme'
 import { useUserStore } from '@/stores/user'
+import { isDesktop } from '@/utils/device'
 
 const userStore = useUserStore()
 const themeStore = useThemeStore()
