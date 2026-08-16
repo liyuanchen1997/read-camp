@@ -5,17 +5,22 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.readcamp.common.ApiException;
 import com.readcamp.dto.ArticleDto;
 import com.readcamp.dto.ArticleRequest;
+import com.readcamp.dto.ProgressView;
 import com.readcamp.dto.ReadingPayload;
 import com.readcamp.dto.SentenceDto;
 import com.readcamp.entity.Article;
 import com.readcamp.entity.Sentence;
 import com.readcamp.entity.SentenceAnnotation;
+import com.readcamp.entity.UserProgress;
+import com.readcamp.entity.UserVocab;
 import com.readcamp.mapper.ArticleMapper;
 import com.readcamp.mapper.SentenceAnnotationMapper;
 import com.readcamp.mapper.SentenceMapper;
 import com.readcamp.mapper.UserFavoriteSentenceMapper;
 import com.readcamp.mapper.UserProgressMapper;
+import com.readcamp.mapper.UserVocabMapper;
 import com.readcamp.service.ArticleService;
+import com.readcamp.service.FavoriteService;
 import com.readcamp.service.ai.SentenceSplitter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -37,6 +42,8 @@ public class ArticleServiceImpl implements ArticleService {
     private final SentenceAnnotationMapper annotationMapper;
     private final UserProgressMapper userProgressMapper;
     private final UserFavoriteSentenceMapper favoriteMapper;
+    private final UserVocabMapper userVocabMapper;
+    private final FavoriteService favoriteService;
 
     @Override
     @Transactional
@@ -174,11 +181,34 @@ public class ArticleServiceImpl implements ArticleService {
         ReadingPayload payload = new ReadingPayload();
         payload.setArticle(article);
         payload.setSentences(sentenceDtos);
-        // 进度/生词/收藏集合由步骤 5 填充
-        payload.setProgress(null);
-        payload.setVocabWords(List.of());
-        payload.setFavSentenceIds(List.of());
+        payload.setProgress(loadProgress(id, userId));
+        payload.setVocabWords(userVocabMapper.selectList(
+                        new LambdaQueryWrapper<UserVocab>().eq(UserVocab::getUserId, userId))
+                .stream()
+                .map(UserVocab::getWord)
+                .collect(Collectors.toList()));
+        payload.setFavSentenceIds(favoriteService.favSentenceIds(userId,
+                sentences.stream().map(Sentence::getId).collect(Collectors.toList())));
         return payload;
+    }
+
+    /** 我的进度视图（无记录返回空进度） */
+    private ProgressView loadProgress(Long articleId, Long userId) {
+        UserProgress p = userProgressMapper.selectOne(
+                new LambdaQueryWrapper<UserProgress>()
+                        .eq(UserProgress::getUserId, userId)
+                        .eq(UserProgress::getArticleId, articleId));
+        ProgressView view = new ProgressView();
+        if (p == null) {
+            view.setReadSentences(List.of());
+            view.setProgress(0);
+            view.setIsCompleted(false);
+        } else {
+            view.setReadSentences(p.getReadSentences() == null ? List.of() : p.getReadSentences());
+            view.setProgress(p.getProgress());
+            view.setIsCompleted(p.getIsCompleted());
+        }
+        return view;
     }
 
     // ---------- 内部方法 ----------

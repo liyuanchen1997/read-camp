@@ -4,11 +4,17 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.readcamp.common.Result;
 import com.readcamp.common.UserContext;
 import com.readcamp.dto.ArticleDto;
+import com.readcamp.dto.ProgressReportRequest;
+import com.readcamp.dto.ProgressResponse;
 import com.readcamp.dto.ReadingPayload;
 import com.readcamp.service.ArticleService;
+import com.readcamp.service.ProgressService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ArticleController {
 
     private final ArticleService articleService;
+    private final ProgressService progressService;
 
     /** 书架分页（仅上架） */
     @GetMapping
@@ -41,5 +48,12 @@ public class ArticleController {
     @GetMapping("/{id}/reading")
     public Result<ReadingPayload> reading(@PathVariable Long id) {
         return Result.ok(articleService.readingPayload(id, UserContext.userId()));
+    }
+
+    /** 批量上报已读句索引（并集去重），返回最新进度 */
+    @PostMapping("/{id}/progress")
+    public Result<ProgressResponse> reportProgress(@PathVariable Long id,
+                                                   @Valid @RequestBody ProgressReportRequest request) {
+        return Result.ok(progressService.report(UserContext.userId(), id, request.getReadSentenceIndexes()));
     }
 }

@@ -11,6 +11,7 @@ import com.readcamp.dto.UpdateProfileRequest;
 import com.readcamp.dto.UserDto;
 import com.readcamp.entity.User;
 import com.readcamp.mapper.UserMapper;
+import com.readcamp.service.ProgressService;
 import com.readcamp.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -24,6 +25,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final ProgressService progressService;
 
     @Override
     public UserDto register(RegisterRequest request) {
@@ -87,7 +89,13 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             throw ApiException.notFound("用户不存在");
         }
-        return UserDto.from(user);
+        UserDto dto = UserDto.from(user);
+        // 聚合统计：完成数 / 进行中 / 平均进度
+        long[] stats = progressService.aggregateStats(userId);
+        dto.setCompletedCount(stats[0]);
+        dto.setReadingCount(stats[1]);
+        dto.setTotalProgress(stats[2]);
+        return dto;
     }
 
     @Override

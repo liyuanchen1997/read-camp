@@ -43,3 +43,10 @@
 - 2026-08-16：管理端文章 CRUD + 上/下架（POST/PUT/DELETE /api/admin/articles、POST /{id}/status、GET 列表）；用户侧书架分页（仅上架，难度/标签过滤）、文章元信息、GET /{id}/reading 阅读载荷（元信息+句子+标注；进度/生词/收藏集合留待步骤 5 填充）
 - 2026-08-16：编辑正文变更 → 重切分（删旧句子/标注/进度）；删除 → 级联句子/标注/进度/收藏
 - 2026-08-16：**步骤 4 验收通过**：单测 10/10；curl 建文切分 8 句与人工一致（Mr./U.S./3.14/引号句均未误切）→ 默认下架书架不可见 → 上架后可见 → reading 载荷完整 → 编辑重切分为 2 句（Dr. 保护）→ 删除级联干净（文章与句子均 0 行）
+
+## 步骤 5 — 学习数据后端
+
+- 2026-08-16：ProgressService——进度批量上报（服务端并集去重、越界索引过滤、total_count 快照、100% 置 is_completed+completed_at）、近期阅读（last_read_at 倒序 10 条联表）、聚合统计（完成数/进行中/平均进度）
+- 2026-08-16：VocabService——生词本分页/加入（小写规范化、已存在幂等）/删除；FavoriteService——例句收藏分页（联表带文章标题）/收藏/取消（均幂等）
+- 2026-08-16：接口接入：POST /api/articles/{id}/progress、GET /api/users/me/recent-reading、/api/vocab CRUD、/api/favorites/sentences CRUD；/users/me 补聚合统计（completedCount/readingCount/totalProgress）；reading 载荷补全 progress/vocabWords/favSentenceIds
+- 2026-08-16：**步骤 5 验收通过**（14 项 curl）：并集去重（重复上报仍 23%）、越界过滤（999/-1 忽略）、部分进度 5/13=38%、100%→is_completed=true、近期阅读排序、聚合 (100+38)/2=69、生词大小写幂等、收藏联表标题、reading 载荷三字段已填充
