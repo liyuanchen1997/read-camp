@@ -6,6 +6,9 @@
         <button class="close-btn" title="关闭" @click="emit('close')">✕</button>
       </div>
 
+      <!-- 原句 -->
+      <p class="bubble-original">{{ sentence.en }}</p>
+
       <!-- 未生成提示 -->
       <p v-if="!sentence.zh && !sentence.explanation" class="bubble-empty">
         该句的精读标注尚未生成，请等待管理员生成
@@ -15,7 +18,7 @@
         <p v-if="sentence.explanation" class="bubble-explanation">{{ sentence.explanation }}</p>
         <p v-if="sentence.zh" class="bubble-zh">{{ sentence.zh }}</p>
 
-        <!-- 句子成分 -->
+        <!-- 句子成分（成分类型 + 对应原文片段） -->
         <div v-if="sentence.components?.length" class="bubble-components">
           <span
             v-for="(c, i) in sentence.components"
@@ -23,7 +26,8 @@
             class="comp-tag"
             :title="c.detail || c.text"
           >
-            {{ c.type }}
+            <span class="comp-type">{{ c.type }}</span>
+            <span class="comp-text">{{ c.text }}</span>
           </span>
         </div>
 
@@ -143,6 +147,14 @@ function speakSentence() {
   color: var(--ink);
 }
 
+.bubble-original {
+  font-family: var(--font-serif-en);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--ink);
+  margin-bottom: var(--space-3);
+}
+
 .bubble-empty {
   color: var(--ink-3);
   font-size: 0.85rem;
@@ -172,12 +184,29 @@ function speakSentence() {
 }
 
 .comp-tag {
-  padding: 2px 10px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 3px 10px;
   border-radius: 999px;
   background: var(--bg-hover);
-  color: var(--accent);
   font-size: 0.75rem;
   cursor: help;
+}
+
+.comp-type {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.comp-text {
+  font-family: var(--font-serif-en);
+  color: var(--ink);
+  font-style: italic;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 单词列表 */

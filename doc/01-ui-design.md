@@ -87,7 +87,7 @@
 - 桌面（≥1024px）：grid 双栏 1fr/1fr，左英文右中文，两独立滚动容器，中间细分割线
 - 句子块：hover 淡金暖底 + 左缘 3px 色条（亮色 #B8860B / 暗色 #D4A017）；朗读当前句橙色下划线；未生成中文句显示"标注未生成"灰字占位
 - 翻译开关关闭时右侧栏收起（1fr→0fr 过渡）
-- **SentenceBubble 气泡**：句首锚定；①句子解释（英文小字）②中文意思 ③成分标签行（主语/谓语/宾语…hover 见 detail）④单词列表（word+pos+meaning，点击开 WordBubble）⑤操作栏：收藏（心形，点亮态绿）+ 整句朗读
+- **SentenceBubble 气泡**：句首锚定；①英文原句（衬线突出）②中文句子讲解 ③中文意思 ④成分标签行（**成分类型 + 对应原文片段**，如"主语 · The lion"，hover 见作用说明）⑤单词列表（word+pos+meaning，点击开 WordBubble）⑥操作栏：收藏（心形，点亮态绿）+ 整句朗读
 - **WordBubble**：word / pos / meaning / role + 发音按钮 + 加入生词本（已加入态可移除）
 - 阅读页不加载 Element Plus
 

@@ -4,6 +4,7 @@
 
 ## 规则与约定
 
+- 2026-08-16：**句子气泡增强**（用户反馈）——①气泡顶部展示英文原句（衬线突出）；②句子成分标签展示"成分类型 + 对应原文片段"（主语 · The lion），hover 显示作用说明；同步 doc/01-ui-design.md §3.4
 - 2026-08-16：**句子讲解改中文**（用户反馈）——Prompt 中 explanation 由"英文讲解"改为"中文讲解"（系统提示明确"所有解释性内容一律使用中文"）；存量 3 篇文章（10001/10002/10006）target=all 重新生成，验证全部讲解以中文为主体（英文仅为原文词汇引用，符合精读讲解规范）；同步 schema.sql 注释与 doc/00-design.md
 - 2026-08-16：用户要求——**每次 git 提交前必须检查并更新相关文档**（对照 diff 检查 README/CLAUDE/AGENTS/doc/**，滞后先更新再提交），已同步至根及前后端 CLAUDE.md / AGENTS.md
 - 2026-08-16：配置 PreToolUse hook 强制文档同步——`.claude/settings.json` + `.claude/scripts/check-doc-sync.py`（git commit/push 前自动检查：非文档变更未更新 changelog、或代码变更无 doc/ 更新 → 拦截并提示调用 git-docs-sync）
