@@ -28,7 +28,10 @@ public class WebConfig implements WebMvcConfigurer {
                 .excludePathPatterns(
                         "/api/health",
                         "/api/auth/register",
-                        "/api/auth/login"
+                        "/api/auth/login",
+                        // 书架公开浏览（阅读载荷/进度等含用户数据，仍需登录）
+                        "/api/articles",
+                        "/api/articles/*"
                 );
         // 管理端拦截：/api/admin/** 需管理员角色
         registry.addInterceptor(adminInterceptor)

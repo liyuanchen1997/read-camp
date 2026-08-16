@@ -39,8 +39,8 @@
 | 用户 | GET /users/me | 资料 + {completedCount, readingCount, totalProgress} | 登录 |
 | 用户 | PUT /users/me | 改昵称/头像 | 登录 |
 | 用户 | GET /users/me/recent-reading | 按 last_read_at 倒序带进度 | 登录 |
-| 文章 | GET /articles?page&size&keyword&difficulty&tag | 书架分页（仅上架） | 登录 |
-| 文章 | GET /articles/{id} | 元信息 | 登录 |
+| 文章 | GET /articles?page&size&keyword&difficulty&tag | 书架分页（仅上架） | **公开** |
+| 文章 | GET /articles/{id} | 元信息 | **公开** |
 | 阅读 | GET /articles/{id}/reading | **一次拉全**：元信息+全部句子(含标注)+我的进度+生词集合+收藏集合 | 登录 |
 | 阅读 | POST /articles/{id}/progress | 批量上报已读索引，服务端并集去重，返回 {progress,isCompleted} | 登录 |
 | 生词 | GET/POST /vocab，DELETE /vocab/{word} | 分页列表/加入(幂等)/删除 | 登录 |

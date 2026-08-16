@@ -50,3 +50,14 @@
 - 2026-08-16：VocabService——生词本分页/加入（小写规范化、已存在幂等）/删除；FavoriteService——例句收藏分页（联表带文章标题）/收藏/取消（均幂等）
 - 2026-08-16：接口接入：POST /api/articles/{id}/progress、GET /api/users/me/recent-reading、/api/vocab CRUD、/api/favorites/sentences CRUD；/users/me 补聚合统计（completedCount/readingCount/totalProgress）；reading 载荷补全 progress/vocabWords/favSentenceIds
 - 2026-08-16：**步骤 5 验收通过**（14 项 curl）：并集去重（重复上报仍 23%）、越界过滤（999/-1 忽略）、部分进度 5/13=38%、100%→is_completed=true、近期阅读排序、聚合 (100+38)/2=69、生词大小写幂等、收藏联表标题、reading 载荷三字段已填充
+
+## 规则与约定
+
+- 2026-08-16：**书架公开浏览**（用户需求）——首页/书架无需登录即可浏览文章列表与详情，进入精读阅读（/reading、进度、生词、收藏）才需登录；后端 WebConfig 放行 /api/articles 与 /api/articles/*，前端路由 / 移除 requiresAuth，已同步 doc/00-design.md §2 与 frontend/doc/README.md
+
+## 步骤 6 — 前端框架+认证
+
+- 2026-08-16：api/auth.ts、api/user.ts 模块；userStore 补 login/register/fetchMe（刷新恢复登录态）
+- 2026-08-16：路由全表（/ /login /register /reading/:id /profile /vocab /favorites /recent /admin/* /404）+ guard.ts（requiresAuth 跳登录带 redirect 回跳、requiresAdmin 校验角色、刷新后 fetchMe 恢复）
+- 2026-08-16：LoginView/RegisterView（纸感卡片、衬线品牌标题、内联错误提示、redirect 回跳；登录后 mustChangePassword 跳个人中心改密）；AppHeader（Logo/导航/主题切换按钮/用户头像菜单下拉/未登录态登录注册按钮，登录注册页隐藏头部）；App.vue 布局；各页面占位 + NotFoundView + 管理后台布局骨架
+- 2026-08-16：**步骤 6 验收**：npm run build（vue-tsc）通过；dev server 启动后 / /login /register /admin 全部 200，/api 代理连通。浏览器交互走查（注册→登录→刷新→登出、主题切换持久）待用户验收

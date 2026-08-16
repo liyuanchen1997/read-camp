@@ -10,6 +10,12 @@ export interface UserDto {
   avatarUrl: string
   role: 0 | 1
   mustChangePassword: boolean
+  /** 精读完成文章数 */
+  completedCount?: number
+  /** 进行中文章数 */
+  readingCount?: number
+  /** 平均阅读进度 0-100 */
+  totalProgress?: number
 }
 
 export interface LoginResult {
