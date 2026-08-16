@@ -34,10 +34,13 @@
       <el-table-column label="句子" width="80">
         <template #default="{ row }">{{ row.sentenceCount }} 句</template>
       </el-table-column>
-      <el-table-column label="AI 标注" width="130">
+      <el-table-column label="AI 标注" width="170">
         <template #default="{ row }">
-          <span v-if="genMap[row.id]">
-            {{ genMap[row.id].done }}/{{ genMap[row.id].total }}
+          <span v-if="genMap[row.id]" class="gen-cell">
+            <el-tag v-if="genMap[row.id].running" type="warning" size="small" effect="dark">
+              ⏳ 生成中
+            </el-tag>
+            <span>{{ genMap[row.id].done }}/{{ genMap[row.id].total }}</span>
             <el-tag v-if="genMap[row.id].failed > 0" type="danger" size="small">
               {{ genMap[row.id].failed }} 失败
             </el-tag>
@@ -86,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { adminApi, type GenStatus } from '@/api/admin'
@@ -135,7 +138,7 @@ async function fetchPage() {
   }
 }
 
-/** 批量拉取生成进度汇总（文章数量少，逐篇查询） */
+/** 批量拉取生成进度汇总（文章数量少，逐篇查询）；任一任务运行中则 2s 轮询跟随 */
 async function loadGenSummaries() {
   const entries = await Promise.all(
     articles.value.map(async (a) => {
@@ -147,7 +150,22 @@ async function loadGenSummaries() {
     }),
   )
   genMap.value = Object.fromEntries(entries.filter((e) => e[1] !== null))
+  if (Object.values(genMap.value).some((s) => s.running)) schedulePoll()
 }
+
+let pollTimer: number | null = null
+
+function schedulePoll() {
+  if (pollTimer !== null) return
+  pollTimer = window.setTimeout(async () => {
+    pollTimer = null
+    await loadGenSummaries()
+  }, 2000)
+}
+
+onBeforeUnmount(() => {
+  if (pollTimer !== null) window.clearTimeout(pollTimer)
+})
 
 function reload() {
   page.value = 1
@@ -206,6 +224,12 @@ onMounted(fetchPage)
 
 .muted {
   color: var(--ink-3);
+}
+
+.gen-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .pager {
