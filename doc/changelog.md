@@ -4,6 +4,7 @@
 
 ## 规则与约定
 
+- 2026-08-16：**单词解释改点击展示**（用户反馈迭代）——经 hover 浮层两轮修复（relatedTarget/跟随鼠标）仍不理想后，按用户要求放弃并改为**点击单词展示浮层**：常驻可操作（发音/生词本）、再点同一单词关闭、点其他单词切换、点气泡其他区域关闭；同步 doc/01-ui-design.md §3.4
 - 2026-08-16：**AI 模型可配置**（用户需求）——新增 ai_config 表（单行 id=1）：base_url/api_key/model/batch_size/temperature/timeout_seconds；管理后台"AI 配置"页编辑 + **测试连接**（先保存再用当前配置发测试请求）；支持任意 OpenAI 兼容服务（DeepSeek/通义/本地 Ollama 等），切换后下次生成即生效；DeepSeekClient 按 (baseUrl+apiKey) 动态重建连接，批量大小改从配置读取；yml 仅作初始默认值（首次访问落库）；已同步 doc/00-design.md §3 与 API 表
 - 2026-08-16：**管理后台仅桌面端**（用户需求）——手机浏览不提供管理后台：AppHeader 导航与用户菜单、个人中心入口在 <1024px 隐藏；路由守卫对手机端访问 /admin 重定向回书架；新增 utils/device.ts 响应式桌面判断
 - 2026-08-16：**单词解释改 hover 浮层**（用户反馈）——句子气泡内单词项鼠标移入即冒泡单词解释（word/pos/meaning/role + 发音 + 加入生词本），不再另开弹窗；180ms 延迟关闭可移入操作；WordBubble 改为紧凑浮层（280px），移除 ReadingView 点击切换弹窗逻辑；同步 doc/01-ui-design.md §3.4
