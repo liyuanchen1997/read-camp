@@ -18,4 +18,23 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        // Element Plus 独立分包：前台首屏（阅读区）不加载 EP 代码
+        codeSplitting: {
+          groups: [
+            {
+              name: 'element-plus',
+              test: /node_modules[\\/]element-plus/,
+            },
+            {
+              name: 'vendor',
+              test: /node_modules/,
+            },
+          ],
+        },
+      },
+    },
+  },
 })

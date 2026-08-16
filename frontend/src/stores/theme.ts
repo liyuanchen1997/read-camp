@@ -12,6 +12,8 @@ export const useThemeStore = defineStore('theme', () => {
   function apply(value: Theme) {
     theme.value = value
     document.documentElement.dataset.theme = value
+    // Element Plus 暗色模式同步（管理后台）
+    document.documentElement.classList.toggle('dark', value === 'dark')
   }
 
   function set(value: Theme) {

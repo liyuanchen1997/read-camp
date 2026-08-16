@@ -8,14 +8,16 @@
     </div>
 
     <div class="toolbar-actions">
+      <!-- 桌面端：翻译开关（移动端由 Tab 切换替代） -->
       <button
+        v-if="!isMobile"
         class="toolbar-btn"
         :class="{ active: showZh }"
         @click="emit('toggle-zh')"
       >
         {{ showZh ? '隐藏翻译' : '显示翻译' }}
       </button>
-      <!-- 朗读控制（步骤 9） -->
+      <!-- 朗读控制 -->
       <slot name="actions" />
     </div>
   </div>
@@ -24,11 +26,14 @@
 <script setup lang="ts">
 import type { ArticleDto } from '@/api/article'
 
-defineProps<{
+withDefaults(defineProps<{
   article: ArticleDto | null
   progress: number
   showZh: boolean
-}>()
+  isMobile?: boolean
+}>(), {
+  isMobile: false,
+})
 
 const emit = defineEmits<{
   'toggle-zh': []

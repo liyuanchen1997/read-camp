@@ -3,10 +3,36 @@
     <ArticleToolbar
       :article="article"
       :progress="store.progress"
-      :show-zh="showZh"
+      :show-zh="isMobile ? mobileTab === 'zh' : showZh"
+      :is-mobile="isMobile"
       @toggle-zh="showZh = !showZh"
     >
       <template #actions>
+        <!-- 移动端：英文/中文 Tab + 对照模式切换 -->
+        <div v-if="isMobile" class="mobile-tabs">
+          <button
+            class="tab-btn"
+            :class="{ active: mobileTab === 'en' }"
+            @click="switchMobileTab('en')"
+          >
+            英文
+          </button>
+          <button
+            class="tab-btn"
+            :class="{ active: mobileTab === 'zh' }"
+            @click="switchMobileTab('zh')"
+          >
+            中文
+          </button>
+          <button
+            class="tab-btn mode"
+            :class="{ active: mobileMode === 'dual' }"
+            :title="mobileMode === 'dual' ? '切换为 Tab 模式' : '切换为上下对照'"
+            @click="toggleMobileMode"
+          >
+            ⇅
+          </button>
+        </div>
         <!-- 朗读控制 -->
         <div class="tts-controls">
           <button
@@ -31,7 +57,8 @@
       </template>
     </ArticleToolbar>
 
-    <div class="reading-layout" :class="{ 'show-zh': showZh }">
+    <!-- 桌面双栏 -->
+    <div v-if="!isMobile" class="reading-layout" :class="{ 'show-zh': showZh }">
       <SentencePane
         ref="enPaneRef"
         side="en"
@@ -40,6 +67,40 @@
       />
       <SentencePane
         v-show="showZh"
+        ref="zhPaneRef"
+        side="zh"
+        :sentences="store.sentences"
+        @sentence-click="onSentenceClick"
+      />
+    </div>
+
+    <!-- 移动端 Tab 模式：单 pane -->
+    <div v-else-if="mobileMode === 'tab'" class="reading-layout mobile">
+      <SentencePane
+        v-if="mobileTab === 'en'"
+        ref="enPaneRef"
+        side="en"
+        :sentences="store.sentences"
+        @sentence-click="onSentenceClick"
+      />
+      <SentencePane
+        v-else
+        ref="zhPaneRef"
+        side="zh"
+        :sentences="store.sentences"
+        @sentence-click="onSentenceClick"
+      />
+    </div>
+
+    <!-- 移动端上下对照 -->
+    <div v-else class="reading-layout mobile-dual">
+      <SentencePane
+        ref="enPaneRef"
+        side="en"
+        :sentences="store.sentences"
+        @sentence-click="onSentenceClick"
+      />
+      <SentencePane
         ref="zhPaneRef"
         side="zh"
         :sentences="store.sentences"
@@ -67,7 +128,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { articleApi, type ArticleDto, type SentenceDto } from '@/api/article'
 import ArticleToolbar from '@/components/reading/ArticleToolbar.vue'
@@ -102,6 +163,33 @@ const zhScroller = computed(() => zhPaneRef.value?.scrollerEl ?? null)
 /** 桌面双栏模式（≥1024px）才启用同步滚动与双栏观察 */
 const isDesktop = ref(window.matchMedia('(min-width: 1024px)').matches)
 const mql = window.matchMedia('(min-width: 1024px)')
+
+/** 移动端模式：tab=英文/中文切换（默认）；dual=上下对照 */
+const isMobile = computed(() => !isDesktop.value)
+const mobileTab = ref<'en' | 'zh'>('en')
+const mobileMode = ref<'tab' | 'dual'>('tab')
+
+/** 切换 Tab：重建 pane 后重新观察进度 */
+function switchMobileTab(tab: 'en' | 'zh') {
+  if (mobileTab.value === tab) return
+  mobileTab.value = tab
+  nextTick(reObserve)
+}
+
+function toggleMobileMode() {
+  mobileMode.value = mobileMode.value === 'tab' ? 'dual' : 'tab'
+  mobileTab.value = 'en'
+  nextTick(reObserve)
+}
+
+/** 重建 IntersectionObserver（pane 切换后新句子需重新观察） */
+function reObserve() {
+  if (isDesktop.value) {
+    tracking.observe(enScroller.value)
+  } else {
+    tracking.observe(null)
+  }
+}
 
 const scrollSync = useScrollSync(enScroller, zhScroller)
 const tracking = useReadTracking(Number(route.params.id))

@@ -60,6 +60,15 @@
 
 - 2026-08-16：**书架公开浏览**（用户需求）——首页/书架无需登录即可浏览文章列表与详情，进入精读阅读（/reading、进度、生词、收藏）才需登录；后端 WebConfig 放行 /api/articles 与 /api/articles/*，前端路由 / 移除 requiresAuth，已同步 doc/00-design.md §2 与 frontend/doc/README.md
 
+## 步骤 12 — 移动端+打磨（完成）
+
+- 2026-08-16：移动端阅读页 **Tab 模式**（工具栏 [英文|中文] 切换，单 pane 渲染）+ **上下对照模式**（⇅ 按钮切换，单容器上下堆叠天然同滚）；Tab/模式切换后重建进度观察（IntersectionObserver）
+- 2026-08-16：移动端细节——工具栏紧凑化（标题截断/进度条收窄/语速滑块隐藏）、阅读区底部安全区 env(safe-area-inset-bottom)、桌面"显示翻译"开关在移动端由 Tab 替代
+- 2026-08-16：**双主题适配**——theme store 同步 Element Plus dark class（管理后台暗色模式生效）；双主题全量走查待用户验收
+- 2026-08-16：**性能**——后端开启 gzip 压缩（阅读载荷实测 5.6KB）；段落 content-visibility:auto 分片渲染（长文）；Element Plus 独立 chunk 分包（前台首屏不加载 EP 代码）
+- 2026-08-16：**步骤 12 验收**：build 通过（分包生效）；gzip Content-Encoding 验证通过；6 个路由 200。手机尺寸/双主题浏览器走查待用户验收
+- 2026-08-16：**12 步全部完成**——功能开发完毕，进入体验验收与迭代阶段
+
 ## 步骤 11 — 管理后台前端
 
 - 2026-08-16：后端补充——GET /api/admin/stats 仪表盘（用户/文章/上架/句子/生成统计）、GET /api/admin/articles/{id} 管理端详情（含正文原文，编辑回显）

@@ -122,7 +122,7 @@
   padding: var(--space-6) clamp(24px, 4vw, 64px) var(--space-7);
 }
 
-/* 移动端（<1024px）：单列上下对照，页面整体滚动 */
+/* 移动端（<1024px）：Tab 单 pane / 上下对照，页面整体滚动 */
 @media (max-width: 1023px) {
   .reading-layout {
     display: block;
@@ -131,18 +131,70 @@
   .en-pane,
   .zh-pane {
     overflow: visible;
-    padding: var(--space-5) var(--space-4) var(--space-7);
+    padding: var(--space-5) var(--space-4) calc(var(--space-7) + env(safe-area-inset-bottom));
   }
 
   .zh-pane {
     border-left: none;
     border-top: 1px solid var(--line);
   }
+
+  .reading-page {
+    height: auto;
+    min-height: 100vh;
+  }
+}
+
+/* 移动端 Tab 切换 */
+.mobile-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tab-btn {
+  padding: 5px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.tab-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.tab-btn.mode {
+  padding: 5px 8px;
+}
+
+@media (max-width: 1023px) {
+  .toolbar-progress {
+    width: 80px;
+  }
+
+  .reading-toolbar {
+    padding: 0 var(--space-3);
+    gap: var(--space-2);
+  }
+
+  .toolbar-title {
+    font-size: 0.95rem;
+    max-width: 30vw;
+  }
 }
 
 /* 段落容器：段落间空行（正常文章排版） */
 .para {
   margin-bottom: var(--space-5);
+  /* 长文渲染性能：视口外段落跳过渲染（含布局高度保留） */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
 }
 
 .para:last-child {
