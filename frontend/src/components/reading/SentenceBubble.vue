@@ -71,13 +71,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
-import type { CSSProperties } from 'vue'
+import { computed, ref } from 'vue'
 import { favoriteApi } from '@/api/favorite'
 import type { SentenceDto } from '@/api/article'
+import { useBubblePosition } from '@/composables/useBubblePosition'
 import { useReadingStore } from '@/stores/reading'
 import { tts } from '@/services/tts'
-import { bubbleStyle } from '@/utils/bubble'
 import WordBubble from './WordBubble.vue'
 
 const props = defineProps<{
@@ -92,7 +91,10 @@ const emit = defineEmits<{
 
 const store = useReadingStore()
 const bubbleEl = ref<HTMLElement | null>(null)
-const style = ref<CSSProperties>({ position: 'fixed', left: '-9999px' })
+const anchorRef = computed(() => props.anchor)
+
+// 定位：挂载后重测 + ResizeObserver 持续校正（翻转/贴底/视口内完整可见）
+const { style } = useBubblePosition(anchorRef, bubbleEl)
 
 /** 点击选中的单词浮层状态（锚定单词项，常驻） */
 const hoveredWord = ref<{
@@ -122,16 +124,6 @@ function onBubbleClick(e: MouseEvent) {
   hoveredWord.value = null
 }
 
-// 渲染后测量高度，计算翻转定位
-watch(
-  () => props.anchor,
-  async () => {
-    await nextTick()
-    style.value = bubbleStyle(props.anchor, bubbleEl.value)
-  },
-  { immediate: true },
-)
-
 async function toggleFav() {
   const fav = !isFav.value
   store.setFav(props.sentence.id, fav) // 乐观更新
@@ -156,6 +148,12 @@ function speakSentence() {
   box-shadow: var(--shadow);
   padding: var(--space-4);
   font-size: 0.9rem;
+  /* 移动端视口矮：限制最大高度，超长时气泡内部滚动（定位翻转按实际高度计算）
+     100dvh = 动态视口（移动端浏览器地址栏收起/展开时跟随），vh 作兜底 */
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .bubble-head {

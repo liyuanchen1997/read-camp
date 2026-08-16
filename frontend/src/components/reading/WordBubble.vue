@@ -26,12 +26,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
-import type { CSSProperties } from 'vue'
+import { computed, ref } from 'vue'
 import { vocabApi } from '@/api/vocab'
+import { useBubblePosition } from '@/composables/useBubblePosition'
 import { useReadingStore } from '@/stores/reading'
 import { tts } from '@/services/tts'
-import { bubbleStyle } from '@/utils/bubble'
 
 const props = defineProps<{
   word: { word: string; pos?: string; meaning?: string; role?: string }
@@ -47,19 +46,12 @@ const emit = defineEmits<{
 
 const store = useReadingStore()
 const bubbleEl = ref<HTMLElement | null>(null)
-const style = ref<CSSProperties>({ position: 'fixed', left: '-9999px' })
+const anchorRef = computed(() => props.anchor)
+
+// 定位：挂载后重测 + ResizeObserver 持续校正；单词浮层紧凑宽度 280px
+const { style } = useBubblePosition(anchorRef, bubbleEl, 280)
 
 const inVocab = computed(() => store.hasVocab(props.word.word))
-
-watch(
-  () => props.anchor,
-  async () => {
-    await nextTick()
-    // 单词浮层：紧凑宽度（280px），内容自适应
-    style.value = bubbleStyle(props.anchor, bubbleEl.value, 280)
-  },
-  { immediate: true },
-)
 
 function speakWord() {
   tts.speak(props.word.word)
@@ -92,6 +84,10 @@ async function toggleVocab() {
   box-shadow: var(--shadow);
   padding: var(--space-3);
   font-size: 0.9rem;
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .wb-head {
