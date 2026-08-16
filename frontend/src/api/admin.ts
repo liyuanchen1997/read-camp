@@ -2,10 +2,26 @@ import { http } from './request'
 import type { PageResult } from '@/types/api'
 import type { ArticleDto, SentenceDto } from './article'
 
+/** 章节表单（编辑回显/提交用） */
+export interface ChapterForm {
+  title: string
+  content: string
+}
+
+/** 章节响应（阅读载荷 content 缺省；管理端详情含 content） */
+export interface ChapterDto {
+  id: number | null
+  seq: number
+  title: string
+  content?: string
+}
+
 export interface ArticleForm {
   title: string
   summary?: string
   content: string
+  /** 章节列表（可选；缺省后端视为单章） */
+  chapters?: ChapterForm[]
   tags?: string[]
   difficulty: 1 | 2 | 3
 }
@@ -42,6 +58,8 @@ export interface ArticleDetail {
   tags: string[] | null
   difficulty: number
   status: number
+  /** 章节列表（旧文章为空数组） */
+  chapters: ChapterDto[]
 }
 
 export interface AiConfig {

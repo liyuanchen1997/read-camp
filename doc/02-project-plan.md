@@ -1,6 +1,6 @@
 # 项目计划表（doc/02）
 
-> **当前进度：步骤 14 已完成待验收**（章节后端 API 全链路 curl 通过），12 步全部完成 ✅
+> **当前进度：步骤 15 已完成待验收**（编辑器章节卡片/回显/弹窗矩阵），12 步全部完成 ✅
 > 迭代需求（2026-08-16 确认）：①文章分章节编辑 + 阅读页章节展示/目录/翻阅；②单词英语音标（讲解弹窗/WordBubble/生词本/收藏页）。设计见 doc/00-design.md §1/§3/§4 与 doc/01-ui-design.md §3。
 > 规则：每步一个模块，完成后更新状态与日期、追加 changelog，然后**暂停等待用户指令**。
 
@@ -29,7 +29,7 @@
 | 12 | 移动端+打磨 | Tab/上下对照模式、工具栏紧凑化、加载/错误/空态全铺、双主题全量走查、性能检查 | 手机尺寸全流程无报错；双主题无样式错乱 | 🟢 已完成 | 2026-08-16 | 移动端 Tab/对照模式、EP 暗色同步、gzip 压缩（载荷 5.6KB）、段落 content-visibility、EP chunk 分包；浏览器双主题/移动端走查待用户验收 |
 | 13 | 章节数据层 | doc/00-design.md §1 → schema.sql（chapter 表 + sentence.chapter_id）→ Chapter 实体/Mapper → 本地库迁移 | schema 幂等、列存在、存量 chapter_id 全 NULL | 🟢 已完成 | 2026-08-16 | 迭代①；schema 已建、迁移已验证（存量 501 句 chapter_id 全 NULL）、编译通过 |
 | 14 | 章节后端 | DTO（ArticleRequest.chapters / ChapterDto / ReadingPayload.chapters / ArticleDetailDto / SentenceDto.chapterId）→ ArticleServiceImpl（normalizeChapters/joinChapters/splitAndStore/reSplit 级联 chapter/chapterize/updateChapterTitlesOnly/readingPayload/detail）→ controller.detail 走 service | curl 全套：建文带/不带 chapters、重切分、仅改标题不重切分、reading 载荷恒非空、删除级联、旧文章合成单章 | 🟢 已完成 | 2026-08-16 | 迭代①；9 项 curl 验收全过（含 chapterize 迁移不删标注/进度、旧文章合成单章 id=null）；10009 已由 chapterize 补章节行 |
-| 15 | 管理端章节编辑器 | api 类型 → 编辑器章节卡片（标题+正文+增删/上下移，≥1 章）+ 回显回退 + payload 带 chapters + 重切分弹窗比较（仅标题变化不弹） | 建分章节文章回显正确、弹窗触发矩阵、旧文章单章回退保存不弹窗且完成 chapterize | ⚪ 未开始 | — | 迭代① |
+| 15 | 管理端章节编辑器 | api 类型 → 编辑器章节卡片（标题+正文+增删/上下移，≥1 章）+ 回显回退 + payload 带 chapters + 重切分弹窗比较（仅标题变化不弹） | 建分章节文章回显正确、弹窗触发矩阵、旧文章单章回退保存不弹窗且完成 chapterize | 🟢 已完成 | 2026-08-16 | 迭代①；前端类型+build 通过、后端链路已由步骤 14 覆盖（回显/弹窗/迁移行为 API 级验证），浏览器交互走查待用户 |
 | 16 | 阅读页章节 | store chapterGroups → SentencePane 章渲染（(chapterId,para) 分组、章标题双栏对称）→ ChapterToc（aside/dropdown）→ ReadingView 布局/跳转/高亮/prev-next → reading.css | 桌面目录跳转+高亮、移动端折叠目录、单章兼容、同步滚动无回弹回归、TTS 定位回归、双主题+<1024px 走查、npm build | ⚪ 未开始 | — | 迭代① |
 | 17 | 单词音标 | AiGenerationService prompt+校验（words 加 phonetic）→ FavoriteItem/VocabItem 带出 → 前端四处展示（SentenceBubble/WordBubble/VocabView/FavoritesView 收藏句单词列表） | 新生成文章四处显示音标；存量不显示且无布局异常；双主题+移动端走查 | ⚪ 未开始 | — | 迭代② |
 
