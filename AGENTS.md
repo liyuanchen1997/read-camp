@@ -4,14 +4,14 @@
 
 ## 项目一句话
 
-英语精读训练网站：Vue3+TS 前端 + Spring Boot 3 后端 + MySQL 8，DeepSeek AI 按需生成句级精读标注。
+英语精读训练网站：Vue3+TS 前端 + Spring Boot 3 后端 + MySQL 8，AI（OpenAI 兼容，默认 DeepSeek，可配置切换）按需生成句级精读标注。
 
 ## 铁律
 
 1. **每步一个模块，完成后必须暂停**：分步开发计划见 `doc/02-project-plan.md`。每完成一步，更新计划表状态 + 写 changelog，然后等待用户指令，**不得擅自进入下一步**。
 2. **文档同步**：任何涉及模块/接口/表结构的变更，必须先更新对应设计文档（`doc/00-design.md` 技术设计 / `doc/01-ui-design.md` UI 设计），再写代码；完成后在 `doc/changelog.md` 追加记录（步骤/日期/变更/验收结果）。
 3. **不越权改表结构**：表结构变更必须先在 `doc/00-design.md` 评审更新，再改 `backend/src/main/resources/db/schema.sql`。
-4. **密钥禁止硬编码**：DeepSeek API Key、JWT secret、数据库密码一律走环境变量 / `application.yml` 占位符，禁止写死在代码或文档里。
+4. **密钥禁止硬编码**：AI API Key（DEEPSEEK_API_KEY 环境变量 / `ai_config` 表，yml 仅初始默认值）、JWT secret、数据库密码一律禁止写死在代码或文档里。
 5. **阅读区禁用 Element Plus**：`Element Plus` 仅允许用于管理后台与表单；阅读页组件零 EP 依赖（路由级懒加载隔离）。
 6. **不自动 git commit/push**：除非用户明确要求。提交前必须展示变更摘要，commit message 用简洁英文附带简洁中文。
 7. **红线操作先问**：删除文件/目录、修改 .env/密钥/CI 配置、git push/rebase/reset --hard、公开发布——即使在 auto-accept 模式也必须先征求用户确认。

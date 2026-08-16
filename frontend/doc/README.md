@@ -22,7 +22,7 @@ services/：tts.ts（speechSynthesis 控制器，整篇/单句/单词朗读）
 | /recent /vocab /favorites | 近期阅读/生词本/收藏 | 学习数据 | 7 |
 | /profile | 个人中心（含后台入口） | 用户 | 7 |
 | /reading/:id | 阅读页（核心） | 双语对照 | 8-9 |
-| /admin/articles /admin/articles/:id/edit /admin/stats | 管理后台 | 管理 | 11 |
+| /admin/articles /admin/articles/new /admin/articles/:id/edit /admin/ai-config /admin/stats | 管理后台（**仅桌面端**） | 管理 | 11 |
 
 ## 3. 双主题机制
 
@@ -36,13 +36,14 @@ services/：tts.ts（speechSynthesis 控制器，整篇/单句/单词朗读）
 - `GET /articles/{id}/reading` 一次拉全 → 按索引对齐双栏渲染
 - hover 高亮：readingStore.hoveredIndex 状态驱动双向同步
 - 同步滚动：预存 offsetTop + 二分锚句 + 瞬时 scrollIntoView + 互斥锁 + 主导源判定
-- SentenceBubble/WordBubble：Teleport + fixed 定位，自动翻转，乐观更新收藏/生词
-- TTS：语音候选 en-US→en-*→默认；整篇顺序朗读 + 当前句高亮；pause 不可靠用重播；语速持久化
+- SentenceBubble/WordBubble：Teleport + fixed 定位，自动翻转，乐观更新收藏/生词；单词含音标（AI 标注 phonetic，可选）
+- TTS：语音候选**女声优先**（持久化选择 → en-US 女声 → en-* 女声 → en-US → en-* → 默认）；整篇顺序朗读 + 当前句高亮；pause 不可靠用重播；语速持久化
 - 进度：IntersectionObserver(threshold 0.2) + 3s/30条/pagehide 防抖上报
+- 章节：readingStore chapterGroups 按 chapterId 分组，章标题双栏对称渲染；ChapterToc 目录（桌面左侧固定 + 移动端折叠下拉）+ 上一章/下一章
 
 ## 5. 移动端（<1024px）
 
-- Tab 模式（英文/中文切换，单 pane）默认；上下对照模式可选
+- Tab 模式（英文/中文切换，单 pane）默认；上下对照模式可选；工具栏含"目录"按钮（折叠下拉）
 - tap=click 开气泡；底部安全区适配
 
 ## 6. 变更记录
@@ -50,3 +51,4 @@ services/：tts.ts（speechSynthesis 控制器，整篇/单句/单词朗读）
 | 日期 | 变更 |
 |---|---|
 | 2026-08-16 | 骨架：Vite 脚手架、tokens.css/base.css、router、user/theme store、api/request.ts、HomeView 占位 |
+| 2026-08-16 | 认证/书架/阅读页/气泡/TTS/双主题（步骤 6-12）、管理后台（步骤 11）、AI 配置页、生成弹窗模型名动态化、段落间距 |

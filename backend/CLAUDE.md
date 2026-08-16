@@ -28,10 +28,10 @@ dto/        # 请求/响应 DTO
 
 1. **统一 Result 包装**：所有接口返回 `Result<T>`；业务异常抛 `ApiException`（带 HTTP 语义），禁止 controller 里 try-catch 吞异常。
 2. **鉴权**：JWT 解析走 HandlerInterceptor（AuthInterceptor → ThreadLocal UserContext；AdminInterceptor 校验 role==1）。不引入完整 Spring Security。
-3. **密钥零硬编码**：JWT secret / DeepSeek key / DB 密码全部 `${ENV_VAR:默认值}` 形式放 application.yml，禁止写死在代码里。
+3. **密钥零硬编码**：JWT secret / AI API Key（DEEPSEEK_API_KEY 环境变量 / ai_config 表）/ DB 密码全部走 `${ENV_VAR:默认值}` 占位符或管理后台「AI 配置」页，禁止写死在代码里。
 4. **AI 生成状态机**：gen_status 0未生成/1生成中/2已生成/3生成失败，**DB 是唯一事实源**；任务在异步线程池执行，与 HTTP 请求生命周期解耦（页面关闭不中断）；任务互斥（同文章同时仅一个任务，否则 409）。
 5. **表结构变更**：先更新根 doc/00-design.md，再改 `resources/db/schema.sql`，再写代码。
-6. 配置项（batchSize、超时、model）走 application.yml，不写死在代码里。
+6. **配置项运行时走 `ai_config` 表**（baseUrl/apiKey/model/batchSize/temperature/timeout，管理后台「AI 配置」页编辑，每次调用实时读取），application.yml 仅作初始默认值（首次访问落库），禁止写死在代码里。
 7. 全局细节以根目录 CLAUDE.md / AGENTS.md 为准（分步开发、每步暂停、changelog 记录）。
 
 ## 本地数据库
@@ -43,5 +43,5 @@ dto/        # 请求/响应 DTO
 ## 关键模块说明
 
 - SentenceSplitter：上传时切分句子（`.` `!` `?` 句界、缩写白名单、数字保护、引号归属），doc/00-design.md §1
-- AiGenerationService：分批调用 DeepSeek、JSON 三层解析防护、批级重试 2 次、坏项单补、逐句状态落库，doc/00-design.md §3
-- 阅读载荷 `GET /articles/{id}/reading`：一次拉全（元信息+句子+标注+进度+生词集合+收藏集合）
+- AiGenerationService：分批调用 DeepSeekClient（按 ai_config 动态指向任意 OpenAI 兼容服务）、JSON 三层解析防护、批级重试 2 次、坏项单补、逐句状态落库，doc/00-design.md §3
+- 阅读载荷 `GET /articles/{id}/reading`：一次拉全（元信息+章节列表+句子含 chapterId/para+标注+进度+生词集合+收藏集合）

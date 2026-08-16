@@ -25,7 +25,7 @@ import java.util.concurrent.Executor;
 
 /**
  * AI 生成服务（doc/00-design.md §3，最高复杂度模块）
- * 流程：分批（默认 5）→ 每批一次 DeepSeek 调用（json_object）→ 三层解析防护
+ * 流程：分批（默认 3，优先 ai_config/请求参数）→ 每批一次 OpenAI 兼容调用（DeepSeekClient，json_object）→ 三层解析防护
  * → 逐项校验 UPSERT 落库（gen_status 实时更新）→ 批级失败重试 2 次（退避）
  * → 仍败该批标 3 + gen_error（可单句重试）。批间检查取消标记；DB 为唯一事实源。
  */

@@ -10,7 +10,7 @@
 |---|---|
 | 前端 | Vue 3 + TypeScript + Vite + Pinia + Vue Router + Axios + Element Plus（仅管理后台） |
 | 后端 | Spring Boot 3 + MyBatis-Plus + MySQL 8 + JWT（HandlerInterceptor 轻量鉴权） |
-| AI | DeepSeek（OpenAI 兼容接口，模型 deepseek-v4-flash），管理员点击才生成，结果入库 |
+| AI | OpenAI 兼容接口（默认 DeepSeek deepseek-v4-flash，ai_config 表可切换通义/本地 Ollama 等，管理后台「AI 配置」页编辑），管理员点击才生成，结果入库 |
 | 发音 | 浏览器原生 speechSynthesis（免费） |
 
 ## 本地开发命令

@@ -7,24 +7,23 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+/** 文章章节（article.content_en 为各章拼接全文，本章原文独立存储供编辑回显） */
 @Data
-@TableName("sentence")
-public class Sentence {
+@TableName("chapter")
+public class Chapter {
 
     @TableId(type = IdType.AUTO)
     private Long id;
 
     private Long articleId;
 
-    /** 章节 id（NULL=无章节旧数据，阅读页视为单章） */
-    private Long chapterId;
-
-    /** 句序，0 起（全局递增，跨章连续） */
+    /** 章序，0 起 */
     private Integer seq;
 
-    /** 章内段落号，0 起（按原文空行分段） */
-    private Integer para;
+    /** 章节标题 */
+    private String title;
 
+    /** 本章英文原文（已 trim） */
     private String contentEn;
 
     private LocalDateTime createdAt;

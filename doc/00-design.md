@@ -1,19 +1,20 @@
 # 技术架构设计文档（doc/00）
 
 > 版本 v1.0 · 2026-08-16 · 与 [01-ui-design.md](01-ui-design.md)、[02-project-plan.md](02-project-plan.md) 配套
-> 技术栈固定：Vue3+TS+Vite+Pinia+Element Plus(仅管理端) ｜ Spring Boot 3 + MyBatis-Plus + MySQL 8 + JWT ｜ DeepSeek (deepseek-v4-flash) ｜ 原生 speechSynthesis ｜ PC+移动端
+> 技术栈固定：Vue3+TS+Vite+Pinia+Element Plus(仅管理端) ｜ Spring Boot 3 + MyBatis-Plus + MySQL 8 + JWT ｜ AI（OpenAI 兼容接口，默认 DeepSeek deepseek-v4-flash，ai_config 可配置切换）｜ 原生 speechSynthesis ｜ PC+移动端
 
 ---
 
-## 1. 数据库设计（7 张表）
+## 1. 数据库设计（9 张表）
 
 引擎 InnoDB，字符集 utf8mb4，时间字段 DATETIME，`updated_at` 用 `ON UPDATE CURRENT_TIMESTAMP`。无物理外键，应用层保证一致性。
 
 | 表名 | 用途 |
 |---|---|
 | `user` | 用户（role 0普通/1管理员，must_change_password 首登改密标记） |
-| `article` | 文章元信息 + 英文全文原文（content_en MEDIUMTEXT） |
-| `sentence` | 逐句英文，上传时服务端切分落库（article_id + seq 唯一，**para 段落号 0 起**——按原文空行分段，前端段落流式排版用） |
+| `article` | 文章元信息 + 英文全文原文（content_en MEDIUMTEXT，**各章节正文 trim 后 `\n\n` 拼接**） |
+| `chapter` | **文章章节**（article_id + seq 唯一，title + content_en 本章原文——编辑回显/重切分对照用） |
+| `sentence` | 逐句英文，上传时服务端切分落库（article_id + seq 唯一；**chapter_id 章节 id（NULL=无章节旧数据，阅读页视为单章）**；**para 章内段落号 0 起**——按原文空行分段，前端段落流式排版用） |
 | `sentence_annotation` | AI 产出 1:1 sentence：中文翻译/中文句子讲解/句子成分 JSON/单词标注 JSON/gen_status 状态机 |
 | `user_progress` | 阅读进度（read_sentences 已读索引 JSON + progress 冗余值 + is_completed + last_read_at） |
 | `user_vocab` | 生词本（user_id+word 唯一，小写规范化，存出处句） |
@@ -22,13 +23,15 @@
 
 ### 关键设计决策
 
-- **正文切分**：管理端上传/编辑时，原文存 `article.content_en`，同时 `SentenceSplitter` 切分逐句写 `sentence` 表（含 seq 与 **para 段落号**）。阅读页不做切分。切分规则：**段落判定格式化容错**——原文含空行（`\n\n`）则空行分段、段内单个换行折叠为空格；全文无空行时单个换行即段落边界（兼容用户单换行分段习惯，如从网页/文档粘贴）；空白段跳过、段落号 0 起连续。段内以 `.` `!` `?` 为句界；缩写白名单保护（Mr. U.S. e.g. 等）+ 数字小数点不切；点后无空格紧跟大写字母时，点前为完整单词（≥3 字符，句子粘连如 strong.Tom）视为句界、否则视为缩写内部（A.B.C.）不切；引号句尾句号归入引号内。**阅读页排版**：按段落分组渲染，段落内句子 inline 流式（视觉为正常文章），段落间空行；句子级元素保留用于悬停高亮/点击气泡/同步滚动锚点。
+- **正文切分**：管理端上传/编辑时，按章节（`chapter` 表逐章存原文，`article.content_en` 存拼接全文）逐章调 `SentenceSplitter` 切分逐句写 `sentence` 表（含全局递增 seq、**章内 para 段落号 0 起**、chapter_id）。阅读页不做切分。切分规则：**段落判定格式化容错**——原文含空行（`\n\n`）则空行分段、段内单个换行折叠为空格；全文无空行时单个换行即段落边界（兼容用户单换行分段习惯，如从网页/文档粘贴）；空白段跳过、段落号 0 起连续。段内以 `.` `!` `?` 为句界；缩写白名单保护（Mr. U.S. e.g. 等）+ 数字小数点不切；点后无空格紧跟大写字母时，点前为完整单词（≥3 字符，句子粘连如 strong.Tom）视为句界、否则视为缩写内部（A.B.C.）不切；引号句尾句号归入引号内。**阅读页排版**：按章节分组渲染（章标题两栏对称展示），章内按段落分组，段落内句子 inline 流式（视觉为正常文章），段落间空行；句子级元素保留用于悬停高亮/点击气泡/同步滚动锚点。
+- **章节归一化**：管理端请求可带 `chapters: [{title, content}]`（可选）；缺省 = 单章（title=文章标题、content=原 content 字段），完全兼容旧调用。编辑保存三分支：正文/章节结构变化 → 重切分（删句子+标注+进度+chapter 行，前端确认弹窗）；正文未变且文章无 chapter 行 → **chapterize**（按 splitter 确定性走位补 chapter 行 + 填存量句 chapter_id，不删句不弹窗）；仅章标题变化 → 只更新 title 不重切分。
+- **存量文章兼容**：无 chapter 行、sentence.chapter_id 全 NULL → 阅读载荷合成单章 `{id:null, seq:0, title:文章标题}`，目录恒可用。
 - **整篇翻译不单独生成**：= 逐句 `content_zh` 按 seq 拼接。零额外成本且天然逐句对齐；"连贯语体全文"列为 v2。
-- **JSON 字段**：`article.tags`、`sentence_annotation.components`（`[{type:"主语", text, detail}]` 中文语法术语）、`sentence_annotation.words`（`[{word, pos, meaning, role}]` 覆盖全部实词）、`user_progress.read_sentences`（索引数组）。
+- **JSON 字段**：`article.tags`、`sentence_annotation.components`（`[{type:"主语", text, detail}]` 中文语法术语）、`sentence_annotation.words`（`[{word, pos, meaning, role, phonetic}]` 覆盖全部实词，**phonetic 为 IPA 音标，可选**——仅新生成标注带出，存量不补）、`user_progress.read_sentences`（索引数组）。
 - **衍生指标不落库**：精读文章数量 = `COUNT(user_progress WHERE user_id=? AND is_completed=1)` 实时聚合。
 - **sentence 与 annotation 分离**：上传数据与 AI 数据生命周期不同（编辑重切分 vs 反复生成重试），分离后重切分只删旧 sentence+annotation，gen_status 独立索引高效。
 
-完整 DDL 见 `backend/src/main/resources/db/schema.sql`，种子数据见 `db/seed.sql`（预置 admin + 示例文章）。
+完整 DDL 见 `backend/src/main/resources/db/schema.sql`（chapter 表 + sentence.chapter_id 列），种子数据见 `db/seed.sql`（预置 admin + 示例文章）。
 
 ## 2. 后端 API（前缀 /api，统一 Result{code,message,data}，JWT Bearer）
 
@@ -42,11 +45,12 @@
 | 用户 | GET /users/me/recent-reading | 按 last_read_at 倒序带进度 | 登录 |
 | 文章 | GET /articles?page&size&keyword&difficulty&tag | 书架分页（仅上架） | **公开** |
 | 文章 | GET /articles/{id} | 元信息 | **公开** |
-| 阅读 | GET /articles/{id}/reading | **一次拉全**：元信息+全部句子(含标注+para 段落号)+我的进度+生词集合+收藏集合 | 登录 |
+| 阅读 | GET /articles/{id}/reading | **一次拉全**：元信息+章节列表(恒非空，无章节合成单章)+全部句子(含标注+para 章内段落号+chapterId)+我的进度+生词集合+收藏集合 | 登录 |
 | 阅读 | POST /articles/{id}/progress | 批量上报已读索引，服务端并集去重，返回 {progress,isCompleted} | 登录 |
-| 生词 | GET/POST /vocab，DELETE /vocab/{word} | 分页列表（按出处句 AI 标注带出 pos/meaning/role 解释）/加入(幂等)/删除 | 登录 |
-| 收藏 | GET/POST /favorites/sentences，DELETE /favorites/sentences/{sentenceId} | 分页（带出标注的 zh 翻译与 explanation 讲解）/收藏/取消 | 登录 |
-| 管理 | POST/PUT/DELETE /admin/articles[/{id}] | CRUD；编辑正文 → 重切分 + 清标注/进度（前端确认弹窗） | 管理员 |
+| 生词 | GET/POST /vocab，DELETE /vocab/{word} | 分页列表（按出处句 AI 标注带出 pos/meaning/role/phonetic 解释）/加入(幂等)/删除 | 登录 |
+| 收藏 | GET/POST /favorites/sentences，DELETE /favorites/sentences/{sentenceId} | 分页（带出标注的 zh 翻译、explanation 讲解与 words 单词列表）/收藏/取消 | 登录 |
+| 管理 | POST/PUT/DELETE /admin/articles[/{id}] | CRUD；请求可带 chapters[{title,content}]（缺省=单章）；编辑正文 → 重切分 + 清标注/进度（前端确认弹窗） | 管理员 |
+| 管理 | GET /admin/articles/{id} | 管理端详情：含 contentEn 与 chapters（各章原文，编辑回显） | 管理员 |
 | 管理 | POST /admin/articles/{id}/status | 上架/下架 {status:0\|1} | 管理员 |
 | 管理 | GET /admin/articles | 管理列表（含生成进度汇总） | 管理员 |
 | 管理 | GET /admin/articles/{id}/gen-status | 四态计数 + 逐句状态 | 管理员 |
@@ -68,7 +72,7 @@
 → 按 seq 分批（batchSize 来自 ai_config，默认 3；批内字符上限 3000）
 → 每批调 OpenAI 兼容 /chat/completions（response_format=json_object, temperature 可配, 超时可配）
 → 解析+校验 → 逐句 UPSERT annotation（gen_status 实时落库）
-→ 批级失败重试 2 次（1s/3s 退避）→ 仍败逐句标 3 + gen_error，可单句重试
+→ 批级失败重试 2 次（0.5s/2s 退避，`1000×(attempt+1)²/2` ms）→ 仍败逐句标 3 + gen_error，可单句重试
 ```
 
 **模型可配置**：base_url / api_key / model / batch_size / temperature / timeout 存 `ai_config` 表（管理后台"AI 配置"页编辑），支持切换任意 OpenAI 兼容服务（DeepSeek、通义、本地 Ollama/LM Studio 等）；每次调用实时读取配置，切换后下次生成即生效；yml 配置仅作为初始默认值。
@@ -87,7 +91,7 @@
 ### Prompt 要点
 
 System：`你是专业的英语精读讲解助手…只输出一个 JSON 对象，不要输出任何解释性文字或 Markdown 代码块。`
-User：传入 `[{seq, text}...]`，要求输出 `{results:[{seq, content_zh, explanation, components:[{type,text,detail}], words:[{word,pos,meaning,role}]}]}`，results 数量与输入一致、seq 一一对应；words 覆盖全部实词；components 用中文语法术语。
+User：传入 `[{seq, text}...]`，要求输出 `{results:[{seq, content_zh, explanation, components:[{type,text,detail}], words:[{word,pos,meaning,role,phonetic}]}]}`，results 数量与输入一致、seq 一一对应；words 覆盖全部实词，**phonetic 为英语 IPA 音标（`/` 包裹，如 /ˈbɪli/），尽量输出**（个别词缺失可容忍，不整体重试）；components 用中文语法术语。
 
 ### 解析三层防护
 
@@ -95,22 +99,24 @@ User：传入 `[{seq, text}...]`，要求输出 `{results:[{seq, content_zh, exp
 
 ### 成本控制
 
-默认 target=missing 增量生成；预估 token 提示（句数 × ~250 output）；batchSize 可配；单句试生成；批间检查取消标记；max_tokens 封顶（2000 + 400×batchSize）。
+默认 target=missing 增量生成；预估 token 提示（生成弹窗文案"每句约 2000+ tokens"）；batchSize 可配（默认 3）；单句试生成；批间检查取消标记；max_tokens = max(8000, 3000 + 1500×batchSize)（reasoning 模型预留思考 token，防内容被截断）。
 
 ## 4. 阅读页前端架构
 
 - **数据**：`GET /reading` 一次拉全，按索引构造 enList/zhList 对齐数组（索引对齐即对齐，零 DOM 测量）。
-- **布局**：桌面 grid 双栏（≥1024px），左右独立滚动容器；移动端 Tab 模式（单 pane，同步滚动/双向高亮自动禁用）+ 可选上下对照模式。
+- **布局**：桌面 grid「200px 目录列 + 双栏 1fr/1fr」（≥1024px），左右独立滚动容器；移动端 Tab 模式（单 pane，同步滚动/双向高亮自动禁用）+ 可选上下对照模式 + 工具栏"目录"按钮（折叠下拉）。
+- **章节**：句子按 chapterId 分组（readingStore chapterGroups 派生），每章开头渲染章标题（**en/zh 两栏对称同渲染**——同步滚动锚点依赖 DOM 结构对称）；分组 key 用 (chapterId, para) 二元组（章内 para 0 起会跨章碰撞）；无 chapterId 句子归入单章（标题=文章标题）。
+- **目录（ChapterToc，零 EP）**：桌面左侧固定列（章节列表 + 当前章高亮 + 上一章/下一章按钮，首末章 disabled）；移动端顶部折叠下拉（max-height 60vh 内滚、点外关闭）；点击 `[data-chapter]` 锚点 scrollIntoView（章标题 `scroll-margin-top` 避开工具栏）；当前章高亮由 IntersectionObserver（root=en/zh 滚动容器，rootMargin 顶部 25% 区）驱动，重建时机挂在既有 reObserve 钩子。
 - **双向高亮**：readingStore 单一 hoveredIndex，两栏句子 index 相等派生 synced class，纯状态驱动。
-- **同步滚动**：预存各句 offsetTop，二分查找锚句，scrollIntoView(瞬时)，互斥锁 50ms 窗口，主导源判定（用户滚动差值 >4px 才算）。
-- **气泡**：SentenceBubble（解释/中文/成分标签行/单词列表/收藏/整句朗读）+ WordBubble（词性/意思/作用/发音/加入生词本）；fixed 定位自动翻转；同屏单实例；点击外部/Esc/切换句子关闭；收藏与生词乐观更新。
-- **TTS 控制器**（services/tts.ts 单例）：语音候选 en-US→en-*→默认（voiceschanged 监听 + 无英文音色兜底提示，音色 id 持久化可手选）；整篇顺序朗读 + 当前句高亮 + 双向滚动跟随；pause 不可靠 → cancel+记录索引+重播；语速 0.5–1.5 持久化；离开页面 cancel。
+- **同步滚动**：预存各句 offsetTop，二分查找锚句，scrollIntoView(瞬时)，互斥锁 120ms 窗口，主导源判定（用户滚动差值 >4px 才算）。
+- **气泡**：SentenceBubble（英文原句/中文讲解/中文意思/成分标签行/单词列表(含音标)/收藏/整句朗读）+ WordBubble（音标/词性/意思/作用/发音/加入生词本）；fixed 定位自动翻转；同屏单实例；点击外部/Esc/切换句子关闭；收藏与生词乐观更新。
+- **TTS 控制器**（services/tts.ts 单例）：语音候选**女声优先**——持久化选择 → en-US 女声 → en-* 女声 → en-US → en-* → 默认（voiceschanged 监听 + 无英文音色兜底提示，音色 id 持久化可手选）；整篇顺序朗读 + 当前句高亮 + 双向滚动跟随；pause 不可靠 → cancel+记录索引+重播；语速 0.5–1.5 持久化；离开页面 cancel。
 - **进度**：IntersectionObserver(threshold 0.2) 收集已读索引，3s/30条/pagehide 防抖批量上报。
-- **翻译开关**：工具栏"显示翻译"切换 zh-pane 显隐，默认关。
+- **翻译开关**：工具栏"显示翻译"切换 zh-pane 显隐，默认关（**仅桌面端**，移动端由 Tab 切换承担）。
 
 ## 5. 移动端（<1024px）
 
-- 默认 Tab 模式：`[英文 | 中文]` 切换标签 + 朗读 + 翻译开关，同时渲染一个 pane。
+- 默认 Tab 模式：`[英文 | 中文]` 切换标签 + 朗读 + **目录按钮**，同时渲染一个 pane。
 - 上下对照模式（设置内可选）：单滚动容器内 EN/ZH 配对卡片，天然同滚。
 - tap=click 开气泡；气泡底部留白；进度观察者 root 换为当前滚动容器；底部安全区 env(safe-area-inset-bottom)。
 

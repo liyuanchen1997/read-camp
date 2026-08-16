@@ -1,8 +1,9 @@
 -- ============================================================
--- 英语精读训练营 数据库结构（7 张表）
+-- 英语精读训练营 数据库结构（9 张表）
 -- 幂等：CREATE TABLE IF NOT EXISTS，可重复执行
 -- 设计依据：doc/00-design.md §1（修改表结构需先更新该文档）
 -- 执行：mysql -uroot -p readcamp < schema.sql
+-- 存量库升级：sentence 表新增 chapter_id 列的 ALTER 见文件末尾（仅执行一次）
 -- ============================================================
 
 -- 用户表
@@ -38,16 +39,31 @@ CREATE TABLE IF NOT EXISTS `article` (
   KEY `idx_status_created` (`status`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='文章';
 
+-- 章节表（文章分章节；article.content_en 为各章拼接全文，本章原文独立存储供编辑回显）
+CREATE TABLE IF NOT EXISTS `chapter` (
+  `id`         BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `article_id` BIGINT UNSIGNED NOT NULL COMMENT '文章 id',
+  `seq`        INT             NOT NULL COMMENT '章序，0 起',
+  `title`      VARCHAR(200)    NOT NULL COMMENT '章节标题',
+  `content_en` MEDIUMTEXT      NOT NULL COMMENT '本章英文原文（编辑回显/重切分对照）',
+  `created_at` DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY `uk_article_seq` (`article_id`, `seq`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='文章章节';
+
 -- 句子表（上传时服务端切分落库，阅读页零切分）
 CREATE TABLE IF NOT EXISTS `sentence` (
   `id`         BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `article_id` BIGINT UNSIGNED NOT NULL COMMENT '文章 id',
-  `seq`        INT             NOT NULL COMMENT '句序，0 起',
-  `para`       INT             NOT NULL DEFAULT 0 COMMENT '段落号，0 起（按原文空行分段，阅读页段落流式排版）',
+  `chapter_id` BIGINT UNSIGNED DEFAULT NULL COMMENT '章节 id（NULL=无章节旧数据，阅读页视为单章）',
+  `seq`        INT             NOT NULL COMMENT '句序，0 起（全局递增，跨章连续）',
+  `para`       INT             NOT NULL DEFAULT 0 COMMENT '章内段落号，0 起（按原文空行分段，阅读页段落流式排版）',
   `content_en` TEXT            NOT NULL COMMENT '英文句子',
   `created_at` DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY `uk_article_seq` (`article_id`, `seq`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='句子';
+
+-- 存量库升级（新库无需执行；ALTER 非幂等，仅执行一次）：
+-- ALTER TABLE `sentence` ADD COLUMN `chapter_id` BIGINT UNSIGNED DEFAULT NULL COMMENT '章节 id（NULL=无章节旧数据，阅读页视为单章）' AFTER `article_id`;
 
 -- 句子精读标注（AI 生成，1:1 sentence）
 CREATE TABLE IF NOT EXISTS `sentence_annotation` (

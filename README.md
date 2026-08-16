@@ -8,12 +8,12 @@
 - **句级/词级讲解**：点击句子弹出气泡 —— 句子解释、中文意思、句子成分、每个单词的词性与作用；单词可单独查看、发音、加入生词本
 - **发音**：整篇顺序朗读（当前句高亮跟随）、单句/单词发音，浏览器原生 TTS，免费
 - **学习数据**：生词本、例句收藏、近期阅读（进度条）、精读文章数与总进度统计
-- **管理后台**：文章上传/编辑/上架下架；点击按钮按需调用 DeepSeek 生成句子标注（生成中/成功/失败状态可视化，失败可单句重试，页面关闭不中断）
+- **管理后台**（仅桌面端）：文章上传/编辑（支持分章节）/上架下架、AI 标注按需生成（默认 DeepSeek，可在「AI 配置」页切换任意 OpenAI 兼容模型；生成中/成功/失败状态可视化，失败可单句重试，页面关闭不中断）
 - **体验**：亮色/暗黑双主题、PC + 移动端响应式
 
 ## 技术栈
 
-Vue 3 + TypeScript + Vite + Pinia + Element Plus（管理端）｜Spring Boot 3 + MyBatis-Plus + MySQL 8 + JWT｜DeepSeek（deepseek-v4-flash）
+Vue 3 + TypeScript + Vite + Pinia + Element Plus（管理端）｜Spring Boot 3 + MyBatis-Plus + MySQL 8 + JWT｜AI（OpenAI 兼容接口，默认 DeepSeek deepseek-v4-flash，可在管理后台配置切换）
 
 ## 快速启动
 
@@ -40,8 +40,10 @@ readcamp:
   jwt:
     secret: <32 字节以上随机字符串>
   ai:
-    api-key: <DeepSeek API Key>
+    api-key: <AI 服务 API Key（对应环境变量 DEEPSEEK_API_KEY，仅作初始默认值）>
 ```
+
+> 说明：`readcamp.ai` 各项仅为**初始默认值**，运行后可登录管理后台「AI 配置」页修改接口地址/模型/批量大小等（ai_config 表，持久化生效）。
 
 ### 3. 启动后端（8080）
 

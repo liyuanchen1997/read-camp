@@ -42,5 +42,5 @@ src/
 - 双语对照：`GET /articles/{id}/reading` 一次拉全，按索引对齐 enList/zhList，零 DOM 测量
 - 同步滚动：锚句二分 + 瞬时 scrollIntoView + 互斥锁 + 主导源判定（见 doc/00-design.md §4）
 - 气泡：SentenceBubble / WordBubble，fixed 定位自动翻转，同屏单实例
-- TTS：services/tts.ts 单例，语音候选 en-US→en-*→默认，pause 不可靠用重播
+- TTS：services/tts.ts 单例，语音候选女声优先（持久化选择 → en-US 女声 → en-* 女声 → en-US → en-* → 默认），pause 不可靠用重播
 - 进度：IntersectionObserver + 防抖批量上报
