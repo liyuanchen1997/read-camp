@@ -50,5 +50,7 @@ services/：tts.ts（speechSynthesis 控制器，整篇/单句/单词朗读）
 
 | 日期 | 变更 |
 |---|---|
-| 2026-08-16 | 骨架：Vite 脚手架、tokens.css/base.css、router、user/theme store、api/request.ts、HomeView 占位 |
+| 2026-08-16 | 骨架：Vite 脚手架、tokens.css/base.css、router、user/theme store、api/request.ts、HomeView 占位（后已删除，`/` 由 ShelfView 承载） |
 | 2026-08-16 | 认证/书架/阅读页/气泡/TTS/双主题（步骤 6-12）、管理后台（步骤 11）、AI 配置页、生成弹窗模型名动态化、段落间距 |
+| 2026-08-16 | 章节（步骤 15-16，迭代①）：管理端章节编辑器（章节卡片增删/上下移/回显）、reading store chapterGroups 派生分组、SentencePane 章标题渲染、ChapterToc 目录（桌面目录列 + 移动端折叠下拉）、当前章高亮 IntersectionObserver |
+| 2026-08-16 | 音标（步骤 17，迭代②）：SentenceBubble 单词列表/WordBubble/生词本卡片/收藏句单词列表四处展示 IPA 音标；单词解释改点击展示浮层（useBubblePosition 视口溢出修复） |

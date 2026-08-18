@@ -51,3 +51,5 @@ HTTP 请求 → 拦截器链（AuthInterceptor JWT → AdminInterceptor 角色�
 |---|---|
 | 2026-08-16 | 骨架：pom（SB3.4+MP3.5.7+jjwt）、application.yml、ReadCampApplication、Result/ApiException/GlobalExceptionHandler、MybatisPlusConfig、HealthController |
 | 2026-08-16 | 认证（步骤 3）、文章切分与阅读载荷（步骤 4）、学习数据（步骤 5）、AI 批量生成 + ai_config 可配置（步骤 10）、章节数据层 chapter 表 + sentence.chapter_id（步骤 13） |
+| 2026-08-16 | 章节后端（步骤 14，迭代①）：章节归一化三分支（正文变化重切分 / chapterize 补章 / 仅改标题）、ArticleRequest.chapters、reading 载荷 chapters 恒非空（旧文章合成单章 id=null）、管理端 detail 回显 chapters |
+| 2026-08-16 | 音标（步骤 17，迭代②）：生成 prompt words 增加 phonetic（IPA，校验宽松缺失不拒）、VocabItem.phonetic 与 FavoriteItem.words 带出（自 annotation.words JSON，无独立列） |
